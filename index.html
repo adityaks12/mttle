@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spot — find a trainer at your society gym</title>
+
+<!--
+  ============================================================
+  GO LIVE IN 4 STEPS
+  ============================================================
+  1. In reference/PT_Marketplace_Operating_Repository.xlsx (or your live copy of it):
+     File > Share > Publish to web > choose the "Trainer_Master" tab >
+     Comma-separated values (.csv) > Publish. Copy the URL it gives you.
+  2. Paste that URL into CONFIG.sheetCsvUrl below (leave blank to preview with sample data).
+  3. Put YOUR business WhatsApp number in CONFIG.whatsappNumber (this is who the
+     "Request an intro" button messages. The trainer's number NEVER appears on this page).
+  4. Change CONFIG.brandName / headline / tagline if needed, then drag this file
+     onto app.netlify.com/drop (or push to GitHub Pages). Done.
+
+  A trainer shows on the page only when her Status is Active.
+  Set her Status to Paused (or anything but Active) in the sheet and her card disappears on next load.
+
+  SWITCH COLOURWAY: change --signal, --signal-deep and --signal-tint in :root.
+     Volt lime   : #86CB3C / #4D7C0F / #ECF6D6
+     Aqua teal   : #14C7C0 / #0C8480 / #D6F4F1
+     Bright azure: #29ABE2 / #196F9B / #DBEFFA
+  ============================================================
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --paper:#F4F2EC; --card:#FBFAF6; --ink:#17150F; --muted:#6E685C;
+    --signal:#22C55E; --signal-deep:#15803D; --signal-tint:#DAF5E3;
+    --line:#E4E0D5; --sand:#EEEADF;
+    --sans:"Hanken Grotesk", system-ui, sans-serif;
+    --display:"Bricolage Grotesque", var(--sans);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--paper); color:var(--ink); font-family:var(--sans);
+    font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px; margin:0 auto; padding:0 22px}
+
+  header{padding:36px 0 6px}
+  .brand{font-family:var(--display); font-weight:700; font-size:25px; letter-spacing:-.01em; color:var(--ink)}
+  .brand .dot{color:var(--signal); font-weight:800}
+  .hero{padding:24px 0 6px; max-width:660px}
+  .hero h1{font-family:var(--display); font-weight:700; font-size:46px; line-height:1.04;
+    letter-spacing:-.025em; margin:0 0 16px; color:var(--ink)}
+  .hero p{margin:0; color:var(--muted); font-size:17px; max-width:56ch}
+  .assure{margin-top:18px; display:inline-flex; align-items:center; gap:9px;
+    background:var(--signal-tint); color:var(--signal-deep); border-radius:999px;
+    padding:7px 15px 7px 9px; font-size:14px; font-weight:500}
+  .assure .tick{width:18px;height:18px;flex:0 0 18px;border-radius:50%;background:var(--signal-deep);
+    color:#fff;display:grid;place-items:center;font-size:10px;line-height:1}
+
+  .filters{display:flex; flex-wrap:wrap; gap:16px 26px; align-items:flex-end;
+    margin:32px 0 4px; padding:20px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line)}
+  .field label{display:block; font-size:13px; color:var(--muted); margin-bottom:7px}
+  select{font-family:var(--sans); font-size:15px; color:var(--ink); background:var(--card);
+    border:1px solid var(--line); border-radius:10px; padding:11px 34px 11px 13px; min-width:220px;
+    appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%2315803D' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 12px center; cursor:pointer}
+  .chips{display:flex; flex-wrap:wrap; gap:8px}
+  .chip{font-family:var(--sans); font-size:14px; color:var(--ink); background:transparent;
+    border:1px solid var(--line); border-radius:999px; padding:8px 15px; cursor:pointer}
+  .chip[aria-pressed="true"]{background:var(--signal); color:var(--ink); border-color:var(--signal)}
+  .count{margin-left:auto; color:var(--muted); font-size:14px; align-self:center}
+
+  .note{margin:18px 0 0; padding:12px 15px; border-radius:10px; font-size:14px;
+    background:var(--sand); border:1px solid var(--line); color:var(--ink)}
+  .state{padding:60px 0; text-align:center; color:var(--muted)}
+  .state h2{font-family:var(--display); font-weight:600; color:var(--ink); font-size:24px; margin:0 0 8px}
+
+  .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin:24px 0 64px}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:22px; display:flex; flex-direction:column; transition:border-color .15s ease}
+  .card:hover{border-color:var(--ink)}
+  .card-top{display:flex; align-items:center; gap:14px; margin-bottom:16px}
+  .avatar{width:54px;height:54px;flex:0 0 54px;border-radius:50%;display:grid;place-items:center;
+    color:var(--paper);font-family:var(--display);font-weight:700;font-size:23px}
+  .name{font-family:var(--display); font-weight:700; font-size:22px; margin:0; line-height:1.08; letter-spacing:-.01em}
+  .years{margin:3px 0 0; font-size:13px; color:var(--muted)}
+  .tags{display:flex; flex-wrap:wrap; gap:7px; margin-bottom:18px}
+  .tag{font-size:13px; background:var(--signal-tint); color:var(--signal-deep); border-radius:6px; padding:4px 10px; font-weight:500}
+  .meta{margin:0 0 18px; display:grid; gap:11px}
+  .meta .row{display:grid; grid-template-columns:80px 1fr; gap:10px; align-items:baseline}
+  .meta dt{font-size:13px; color:var(--muted)}
+  .meta dd{margin:0; font-size:14.5px; color:var(--ink)}
+  .price{display:flex; align-items:baseline; gap:7px; margin-top:auto; padding-top:16px; border-top:1px solid var(--line)}
+  .price .amt{font-family:var(--display); font-weight:700; font-size:23px; color:var(--ink)}
+  .price .per{font-size:13px; color:var(--muted)}
+  .price .month{margin-left:auto; font-size:13.5px; color:var(--muted)}
+  .cta{margin-top:18px; display:block; text-align:center; text-decoration:none;
+    background:var(--signal-deep); color:#fff; font-family:var(--sans); font-weight:600; font-size:15px;
+    border-radius:10px; padding:13px 16px; transition:background .15s ease}
+  .cta:hover{background:var(--ink)}
+  .cta:focus-visible, .chip:focus-visible, select:focus-visible{outline:2px solid var(--signal); outline-offset:2px}
+
+  footer{border-top:1px solid var(--line); padding:24px 0 44px; color:var(--muted); font-size:13px}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+  @media (max-width:860px){ .grid{grid-template-columns:repeat(2,1fr)} .hero h1{font-size:37px} }
+  @media (max-width:560px){
+    .grid{grid-template-columns:1fr}
+    .hero h1{font-size:31px}
+    select,.field{width:100%; min-width:0}
+    .count{margin-left:0}
+  }
+  @media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="brand" id="brand">Spot<span class="dot">.</span></div>
+    <div class="hero">
+      <h1 id="headline">A trainer who understands women's fitness, at your own society gym.</h1>
+      <p id="tagline">Every trainer here is someone we have spoken to, checked references for, and onboarded in person. Browse for free. You will get her direct contact once you request an intro.</p>
+      <div class="assure"><span class="tick">&#10003;</span> Personally onboarded &amp; reference-checked</div>
+    </div>
+  </header>
+
+  <div class="filters">
+    <div class="field">
+      <label for="society">Your society</label>
+      <select id="society" aria-label="Filter by society"><option value="__all">All societies</option></select>
+    </div>
+    <div class="field">
+      <label id="speclabel">Focus</label>
+      <div class="chips" role="group" aria-labelledby="speclabel" id="specChips"></div>
+    </div>
+    <div class="count" id="count" aria-live="polite"></div>
+  </div>
+
+  <div id="noteSlot"></div>
+  <main id="grid" class="grid" aria-live="polite"></main>
+
+  <footer>
+    <span id="footBrand">Spot</span> is an introduction service that connects clients with independent trainers.
+    We are not a medical provider and do not supervise sessions. Please consult a doctor before starting a new exercise programme.
+  </footer>
+</div>
+
+<script>
+/* ============================ CONFIG ============================ */
+const CONFIG = {
+  brandName: "Spot",                  // your chosen name
+  headline: "A trainer who understands women's fitness, at your own society gym.",
+  tagline: "Every trainer here is someone we have spoken to, checked references for, and onboarded in person. Browse for free. You will get her direct contact once you request an intro.",
+
+  // Paste your published-to-web CSV URL here. Leave "" to preview with sample data.
+  sheetCsvUrl: "",
+
+  // Your business WhatsApp number in international format, digits only (e.g. 919812345678).
+  // This is who the "Request an intro" button messages. Trainer numbers are never shown.
+  whatsappNumber: "919812345678",
+
+  // A trainer is listed only when her Status is one of these.
+  showStatuses: ["Active"],
+
+  // Must match the headers in your Trainer_Master tab exactly (spacing/case are forgiven).
+  columns: {
+    id:              "Trainer ID",
+    name:            "Display Name",
+    status:          "Status",
+    societies:       "Societies Served",
+    delivery:        "Training Format",
+    openSlots:       "Current Open Slots",
+    specializations: "Specialisations",
+    priceSession:    "Price / Session",
+    priceMonth:      "Typical Monthly Price",
+    certs:           "Certifications",
+    years:           "Years Experience"
+  }
+};
+
+/* Sample roster shown only when sheetCsvUrl is blank or the fetch fails. */
+const SAMPLE = [
+  {id:"T001",name:"Priya",status:"Active",societies:"Prestige Lakeside, Sobha Dream Acres",delivery:"Society Gym",openSlots:"3",specializations:"General fitness, PCOS-aware fitness",priceSession:"800",priceMonth:"6000",certs:"K11, ACE",years:"5"},
+  {id:"T002",name:"Anjali",status:"Active",societies:"Sobha Dream Acres",delivery:"Society Gym, Home",openSlots:"1",specializations:"Weight loss, General fitness",priceSession:"700",priceMonth:"5500",certs:"ACSM",years:"4"},
+  {id:"T003",name:"Meera",status:"Active",societies:"Purva Palm Beach, Prestige Lakeside",delivery:"Society Gym",openSlots:"2",specializations:"Beginner fitness, PCOS-aware fitness",priceSession:"900",priceMonth:"7000",certs:"K11",years:"6"},
+  {id:"T004",name:"Reshma",status:"Active",societies:"Brigade Cornerstone",delivery:"Society Gym",openSlots:"4",specializations:"General fitness, Beginner fitness",priceSession:"650",priceMonth:"5000",certs:"Gold's Academy",years:"3"},
+  {id:"T005",name:"Fatima",status:"Active",societies:"Purva Palm Beach",delivery:"Home, Society Gym",openSlots:"2",specializations:"PCOS-aware fitness, Weight loss",priceSession:"850",priceMonth:"6500",certs:"ACE, Precision Nutrition L1",years:"7"}
+];
+
+/* ============================ LOGIC ============================ */
+const C = CONFIG.columns;
+let ALL = [];
+let filterSociety = "__all";
+let filterSpec = "__all";
+
+function parseCSV(text){
+  const rows=[]; let row=[], field="", i=0, inQ=false;
+  while(i<text.length){
+    const c=text[i];
+    if(inQ){
+      if(c==='"'){ if(text[i+1]==='"'){field+='"';i+=2;continue;} inQ=false;i++;continue; }
+      field+=c;i++;continue;
+    } else {
+      if(c==='"'){inQ=true;i++;continue;}
+      if(c===','){row.push(field);field="";i++;continue;}
+      if(c==='\r'){i++;continue;}
+      if(c==='\n'){row.push(field);rows.push(row);row=[];field="";i++;continue;}
+      field+=c;i++;continue;
+    }
+  }
+  if(field.length>0||row.length>0){row.push(field);rows.push(row);}
+  return rows;
+}
+
+function norm(s){return (s||"").trim().toLowerCase();}
+
+function rowsToObjects(rows){
+  if(!rows.length) return [];
+  const header = rows[0].map(h=>h.trim());
+  const idx = {};
+  Object.keys(C).forEach(key=>{
+    const want = norm(C[key]);
+    idx[key] = header.findIndex(h=>norm(h)===want);
+  });
+  return rows.slice(1)
+    .filter(r=>r.some(v=>v && v.trim()!==""))
+    .map(r=>{
+      const o={};
+      Object.keys(idx).forEach(key=>{ o[key] = idx[key]>=0 ? (r[idx[key]]||"").trim() : ""; });
+      return o;
+    });
+}
+
+function splitList(s){return (s||"").split(",").map(x=>x.trim()).filter(Boolean);}
+function fmtRs(v){
+  const n = Number(String(v).replace(/[^0-9.]/g,""));
+  if(!v || isNaN(n) || n===0) return null;
+  return "\u20B9" + n.toLocaleString("en-IN");
+}
+function avatarColor(){ return "var(--ink)"; }
+function esc(s){return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+
+function buildFilters(){
+  const socSel = document.getElementById("society");
+  const societies = new Set();
+  const specs = new Set();
+  ALL.forEach(t=>{
+    splitList(t.societies).forEach(s=>societies.add(s));
+    splitList(t.specializations).forEach(s=>specs.add(s));
+  });
+  [...societies].sort().forEach(s=>{
+    const o=document.createElement("option"); o.value=s; o.textContent=s; socSel.appendChild(o);
+  });
+  socSel.addEventListener("change",()=>{filterSociety=socSel.value; render();});
+
+  const chipWrap = document.getElementById("specChips");
+  const makeChip=(val,label)=>{
+    const b=document.createElement("button");
+    b.className="chip"; b.textContent=label; b.setAttribute("aria-pressed", val===filterSpec);
+    b.addEventListener("click",()=>{
+      filterSpec = val;
+      [...chipWrap.children].forEach(c=>c.setAttribute("aria-pressed", c===b));
+      render();
+    });
+    return b;
+  };
+  chipWrap.appendChild(makeChip("__all","All"));
+  [...specs].sort().forEach(s=>chipWrap.appendChild(makeChip(s,s)));
+}
+
+function matches(t){
+  if(filterSociety!=="__all" && !splitList(t.societies).includes(filterSociety)) return false;
+  if(filterSpec!=="__all" && !splitList(t.specializations).includes(filterSpec)) return false;
+  return true;
+}
+
+function ctaHref(t){
+  const msg = `Hi ${CONFIG.brandName}, I'd like an intro to ${t.name} (${t.id}). Please share the next steps.`;
+  return `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(msg)}`;
+}
+
+function cardHTML(t){
+  const initial = esc((t.name||"?").trim().charAt(0).toUpperCase());
+  const tags = splitList(t.specializations).map(s=>`<span class="tag">${esc(s)}</span>`).join("");
+  const sess = fmtRs(t.priceSession), month = fmtRs(t.priceMonth);
+  const rows = [];
+  if(t.societies)   rows.push(`<div class="row"><dt>Trains at</dt><dd>${esc(splitList(t.societies).join(", "))}</dd></div>`);
+  if(t.delivery)    rows.push(`<div class="row"><dt>Where</dt><dd>${esc(splitList(t.delivery).join(", "))}</dd></div>`);
+  if(t.openSlots)   rows.push(`<div class="row"><dt>Open slots</dt><dd>${esc(t.openSlots)}</dd></div>`);
+  if(t.certs)       rows.push(`<div class="row"><dt>Certified</dt><dd>${esc(t.certs)}</dd></div>`);
+  const priceBlock = sess
+    ? `<div class="price"><span class="amt">${sess}</span><span class="per">per session</span>${month?`<span class="month">${month} / month</span>`:""}</div>`
+    : (month?`<div class="price"><span class="amt">${month}</span><span class="per">per month</span></div>`:"");
+  const yrs = t.years ? `<p class="years">${esc(t.years)} yrs experience</p>` : "";
+  return `<article class="card">
+    <div class="card-top">
+      <div class="avatar" style="background:${avatarColor(t.name)}" aria-hidden="true">${initial}</div>
+      <div><h3 class="name">${esc(t.name)}</h3>${yrs}</div>
+    </div>
+    ${tags?`<div class="tags">${tags}</div>`:""}
+    <dl class="meta">${rows.join("")}</dl>
+    ${priceBlock}
+    <a class="cta" href="${ctaHref(t)}" target="_blank" rel="noopener">Request an intro</a>
+  </article>`;
+}
+
+function render(){
+  const grid=document.getElementById("grid");
+  const list=ALL.filter(matches);
+  document.getElementById("count").textContent =
+    list.length ? `${list.length} trainer${list.length>1?"s":""}` : "";
+  if(!list.length){
+    grid.innerHTML=`<div class="state" style="grid-column:1/-1">
+      <h2>No trainers match yet</h2>
+      <p>Try another society or clear the focus filter. We are adding trainers every week.</p></div>`;
+    return;
+  }
+  grid.innerHTML = list.map(cardHTML).join("");
+}
+
+function showNote(msg){
+  document.getElementById("noteSlot").innerHTML = `<div class="note">${esc(msg)}</div>`;
+}
+
+function applyBranding(){
+  document.getElementById("brand").innerHTML = esc(CONFIG.brandName)+'<span class="dot">.</span>';
+  document.getElementById("headline").textContent = CONFIG.headline;
+  document.getElementById("tagline").textContent = CONFIG.tagline;
+  document.getElementById("footBrand").textContent = CONFIG.brandName;
+  document.title = CONFIG.brandName + " — find a trainer at your society gym";
+}
+
+function start(list){
+  ALL = list.filter(t=>CONFIG.showStatuses.map(norm).includes(norm(t.status)));
+  buildFilters();
+  render();
+}
+
+async function init(){
+  applyBranding();
+  if(!CONFIG.sheetCsvUrl){
+    showNote("Preview mode: showing sample trainers. Paste your published sheet URL in the config to go live.");
+    start(SAMPLE);
+    return;
+  }
+  document.getElementById("grid").innerHTML =
+    `<div class="state" style="grid-column:1/-1"><p>Loading trainers…</p></div>`;
+  try{
+    const res = await fetch(CONFIG.sheetCsvUrl);
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const text = await res.text();
+    const objs = rowsToObjects(parseCSV(text));
+    if(!objs.length) throw new Error("no rows");
+    start(objs);
+  }catch(e){
+    showNote("Could not load the live sheet, showing sample data. Check that the sheet is published to the web as CSV.");
+    start(SAMPLE);
+  }
+}
+init();
+</script>
+</body>
+</html>
