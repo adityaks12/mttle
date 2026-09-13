@@ -9,14 +9,16 @@
   ============================================================
   GO LIVE IN 4 STEPS
   ============================================================
-  1. In reference/PT_Marketplace_Operating_Repository.xlsx (or your live copy of it):
-     File > Share > Publish to web > choose the "Trainer_Master" tab >
+  1. In your live copy of the operating workbook, add a "Trainer_Public_View" tab
+     (see docs/SPEC.md for the QUERY formula). Never publish "Trainer_Master" itself,
+     it holds phone numbers, full names and internal notes.
+     File > Share > Publish to web > choose "Trainer_Public_View" >
      Comma-separated values (.csv) > Publish. Copy the URL it gives you.
   2. Paste that URL into CONFIG.sheetCsvUrl below (leave blank to preview with sample data).
   3. Put YOUR business WhatsApp number in CONFIG.whatsappNumber (this is who the
      "Request an intro" button messages. The trainer's number NEVER appears on this page).
-  4. Change CONFIG.brandName / headline / tagline if needed, then drag this file
-     onto app.netlify.com/drop (or push to GitHub Pages). Done.
+  4. Change CONFIG.brandName / headline / tagline if needed, then push. Netlify deploys
+     this file from the "site" publish directory (see netlify.toml). Done.
 
   A trainer shows on the page only when her Status is Active.
   Set her Status to Paused (or anything but Active) in the sheet and her card disappears on next load.

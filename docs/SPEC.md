@@ -1,28 +1,36 @@
 # Spec, data model and page behaviour
 
 ## Reference workbook, the operating backend
-`reference/PT_Marketplace_Operating_Repository.xlsx` is the full manual operating backend: a multi-tab Google Sheet covering trainer profiles, availability, documents, reviews, societies, customers, requests, introductions, payments, followups, form question banks, controlled lists, an onboarding checklist and acquisition experiments. This is the source of truth for how the concierge operation runs. The browse page only ever reads one published tab from it, `Trainer_Master`.
+`reference/PT_Marketplace_Operating_Repository.xlsx` is the full manual operating backend: a multi-tab Google Sheet covering trainer profiles, availability, documents, reviews, societies, customers, requests, introductions, payments, followups, form question banks, controlled lists, an onboarding checklist and acquisition experiments. This is the source of truth for how the concierge operation runs.
 
-## Trainer_Master, the tab the browse page reads
-Publish this tab to the web as CSV (see `docs/DEPLOY.md`). Columns, in order:
+`Trainer_Master` itself is never published to the web and never shared beyond you. It holds phone numbers, full legal names, consent flags and internal notes. "Publish to web" has no per-column redaction, so publishing `Trainer_Master` directly would ship every private field to anyone who finds the CSV URL, and that URL sits in plain text in `index.html`'s source on the live site. Instead, the browse page reads a second, derived tab: `Trainer_Public_View`.
 
-Trainer ID, Display Name, Full Name (Internal), Phone (Internal), Email, Gender, Primary Area, Societies Served, Training Format, Years Experience, Certifications, Specialisations, Languages, Session Length (min), Price / Session, Typical Monthly Price, Trial Offered, Accepting New Clients, Current Open Slots, Profile Photo, Professional Profile Link, Bio, Consent to List, Consent to Share Contact, Status, Last Contacted, Last Availability Confirmed, Internal Notes.
+## Trainer_Public_View, the tab you actually publish
+A tab built with one formula, so it can never drift out of sync with `Trainer_Master` by hand:
 
-Public, rendered on the page: Display Name, Primary Area, Societies Served, Training Format, Years Experience, Certifications, Specialisations, Languages, Session Length (min), Price / Session, Typical Monthly Price, Trial Offered, Current Open Slots, Bio.
+```
+=QUERY(Trainer_Master!A:AB, "select A, B, Y, H, I, S, L, O, P, K, J where Y = 'Active'", 1)
+```
 
-Private, never rendered and never shipped client-side: Full Name (Internal), Phone (Internal), Email, Profile Photo (unless you deliberately choose to show it), Professional Profile Link (unless deliberately public), Consent to List, Consent to Share Contact, Last Contacted, Last Availability Confirmed, Internal Notes.
+Put this in cell A1. It pulls exactly these columns, header row included, and only rows where Status is Active: Trainer ID, Display Name, Status, Societies Served, Training Format, Current Open Slots, Specialisations, Price / Session, Typical Monthly Price, Certifications, Years Experience. Nothing else, so there is no phone number, full name, email, consent flag or internal note in this tab to leak in the first place. This is what you publish to web as CSV (see `docs/DEPLOY.md`), and its URL is what goes in `index.html`'s CONFIG.sheetCsvUrl.
 
-Publish rule: a row appears on the page only when Status is Active. The controlled list for Status (see the `Lists` tab) is Lead, Contacted, Onboarding, Active, Paused, Full, Rejected, Inactive. Everything except Active hides the card. If you want fully-booked trainers to stay visible with a "fully booked" note instead of disappearing, treat Full as a second show-status, but that is a product decision, raise it in chat first.
+If `Trainer_Master`'s column order ever changes, update the letters in the QUERY string to match, and check the header text against `index.html`'s CONFIG.columns.
 
-Multi-value cells (Societies Served, Specialisations, Languages) hold comma-separated values inside one cell. Google exports these as quoted CSV fields. The page has a CSV parser that handles quoted commas, so do not switch to a naive split on comma.
+Public, rendered on the page: Display Name, Societies Served, Training Format, Certifications, Specialisations, Years Experience, Current Open Slots, Price / Session, Typical Monthly Price.
+
+Never in `Trainer_Public_View` and never shipped client-side: Full Name (Internal), Phone (Internal), Email, Gender, Primary Area, Languages, Session Length, Trial Offered, Accepting New Clients, Profile Photo, Professional Profile Link, Bio, Consent to List, Consent to Share Contact, Last Contacted, Last Availability Confirmed, Internal Notes. These stay in `Trainer_Master` only.
+
+Publish rule: the QUERY's `where Y = 'Active'` filter does the real work, so only Active rows ever leave `Trainer_Master`. The page's own `showStatuses` check is a second, defense-in-depth filter on top, not the only one. The controlled list for Status (see the `Lists` tab) is Lead, Contacted, Onboarding, Active, Paused, Full, Rejected, Inactive. If you want fully-booked trainers to stay visible with a "fully booked" note instead of disappearing, that is a product decision, raise it in chat first.
+
+Multi-value cells (Societies Served, Specialisations) hold comma-separated values inside one cell. Google exports these as quoted CSV fields. The page has a CSV parser that handles quoted commas, so do not switch to a naive split on comma.
 
 ## Browse page (`index.html`)
 A single self-contained file. The config block sits at the top of the script:
 - brandName, headline, tagline
-- sheetCsvUrl: the published CSV URL for the `Trainer_Master` tab. Blank shows the built-in sample roster.
+- sheetCsvUrl: the published CSV URL for the `Trainer_Public_View` tab, never `Trainer_Master`. Blank shows the built-in sample roster.
 - whatsappNumber: the founder's business number in international format. The intro button messages this number.
 - showStatuses: ["Active"]
-- columns: a map from field to the exact Trainer_Master header. Matching is trimmed and case-insensitive.
+- columns: a map from field to the exact Trainer_Public_View header. Matching is trimmed and case-insensitive.
 
 Behaviour:
 - Fetch the CSV, parse it, map by header name, keep only showStatuses rows, and expose only public fields.
