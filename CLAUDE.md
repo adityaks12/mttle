@@ -1,6 +1,6 @@
 # Spot, project guide for Claude Code
 
-Spot is a hyperlocal intro service that connects women in Bangalore apartment societies with vetted female fitness trainers who train them at their own society (clubhouse) gym. Browsing is free. A one-time fee unlocks a chosen trainer's contact. Domain: spot.in.
+Spot is a hyperlocal introduction and matching service that connects people with the personal trainers who actually fit their needs. Today's wedge is women in Bangalore apartment societies (Koramangala and HSR Layout) finding vetted female fitness trainers who train them at their own society (clubhouse) gym; the same model extends to men and to well-qualified male trainers over time, see `docs/PROJECT.md`'s Expansion section, this is a sequencing choice, not the product's permanent scope. Browsing is free. The customer pays a fee to unlock a chosen trainer's direct contact and arranges sessions directly; a quick call with the customer to understand her needs is part of how she gets matched to the right trainer. Domain: spot.in.
 
 Before making changes, read `docs/PROJECT.md` (the idea), `docs/DECISIONS.md` (settled calls, do not relitigate), and `docs/SPEC.md` (data model and page behaviour).
 

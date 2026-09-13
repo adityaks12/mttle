@@ -1,6 +1,6 @@
 # Spot
 
-Hyperlocal intro service connecting women in Bangalore societies with vetted female trainers who train at their society gym. This repo holds the browse page and the project context.
+Hyperlocal introduction and matching service connecting people with the personal trainers who fit their needs. Today's wedge is women in Bangalore societies finding vetted female trainers who train at their society gym; see `docs/PROJECT.md` for why this is a sequencing choice, not a permanent scope. This repo holds the browse page and the project context.
 
 ## Quick start (in Claude Code)
 1. Open this folder as a project.
