@@ -180,7 +180,7 @@ const CONFIG = {
   // One row per trainer per day/time window: Trainer ID, Day, Start Time, End Time,
   // Currently Open. Leave "" and cards fall back to showing the open-slots count
   // instead of actual times.
-  scheduleCsvUrl: "",
+  scheduleCsvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRUis36Glm880KNEAsredCi7iJbKhszbji2jX92nyW4p4Q-dt5Bs_H_LFi7O1nFGg/pub?gid=161642604&single=true&output=csv",
 
   // Your business WhatsApp number in international format, digits only (e.g. 919812345678).
   // This is who the "Request an intro" button messages. Trainer numbers are never shown.
@@ -398,11 +398,23 @@ function start(list){
   render();
 }
 
-async function fetchCSV(url, columnMap){
-  const res = await fetch(url);
-  if(!res.ok) throw new Error("HTTP "+res.status);
-  const text = await res.text();
-  return rowsToObjects(parseCSV(text), columnMap);
+async function fetchCSV(url, columnMap, retries=2){
+  // Google's published-CSV endpoint occasionally bounces the first request
+  // from a fresh client to a login check, then serves fine right after.
+  // A couple of quick retries rides over that instead of surfacing an error.
+  let lastErr;
+  for(let attempt=0; attempt<=retries; attempt++){
+    try{
+      const res = await fetch(url, {cache:"no-store"});
+      if(!res.ok) throw new Error("HTTP "+res.status);
+      const text = await res.text();
+      return rowsToObjects(parseCSV(text), columnMap);
+    }catch(e){
+      lastErr = e;
+      if(attempt<retries) await new Promise(r=>setTimeout(r, 500));
+    }
+  }
+  throw lastErr;
 }
 
 async function init(){
