@@ -424,6 +424,13 @@ function starRating(n){
 }
 
 function splitList(s){return (s||"").split(",").map(x=>x.trim()).filter(Boolean);}
+
+// Society gym is the assumed default for every trainer, so it's not worth a row.
+// Only show "Where" when she offers something beyond that (e.g. also home visits).
+function extraDelivery(t){
+  const extra = splitList(t.delivery).filter(v=>norm(v)!=="society gym");
+  return extra.length ? extra : null;
+}
 function fmtRs(v){
   const n = Number(String(v).replace(/[^0-9.]/g,""));
   if(!v || isNaN(n) || n===0) return null;
@@ -493,7 +500,8 @@ function cardHTML(t){
   const sess = fmtRs(t.priceSession), month = fmtRs(t.priceMonth);
   const rows = [];
   if(locChips)      rows.push(`<div class="row"><dt>Locality</dt><dd class="chiprow">${locChips}</dd></div>`);
-  if(t.delivery)    rows.push(`<div class="row"><dt>Where</dt><dd>${esc(splitList(t.delivery).join(", "))}</dd></div>`);
+  const extraDeliv = extraDelivery(t);
+  if(extraDeliv)    rows.push(`<div class="row"><dt>Also at</dt><dd>${esc(extraDeliv.join(", "))}</dd></div>`);
   const days = daysOnly(t);
   if(days)               rows.push(`<div class="row"><dt>Available On</dt><dd>${esc(days.join(", "))}</dd></div>`);
   else if(t.openSlots)   rows.push(`<div class="row"><dt>Open slots</dt><dd>${esc(t.openSlots)}</dd></div>`);
@@ -554,7 +562,8 @@ function profileHTML(t){
   const sess = fmtRs(t.priceSession), month = fmtRs(t.priceMonth);
   const rows = [];
   if(locChips)    rows.push(`<div class="row"><dt>Locality</dt><dd class="chiprow">${locChips}</dd></div>`);
-  if(t.delivery) rows.push(`<div class="row"><dt>Where</dt><dd>${esc(splitList(t.delivery).join(", "))}</dd></div>`);
+  const extraDeliv = extraDelivery(t);
+  if(extraDeliv)  rows.push(`<div class="row"><dt>Also at</dt><dd>${esc(extraDeliv.join(", "))}</dd></div>`);
   const slots = slotsList(t);
   if(slots)              rows.push(`<div class="row"><dt>Available On</dt><dd><ul class="slotlist">${slots.map(s=>`<li>${esc(s)}</li>`).join("")}</ul></dd></div>`);
   else if(t.openSlots)   rows.push(`<div class="row"><dt>Open slots</dt><dd>${esc(t.openSlots)}</dd></div>`);
