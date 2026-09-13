@@ -15,12 +15,13 @@ GitHub Pages is not a good fit here: its subfolder option is fixed to `/docs`, w
 Custom domain: point spot.in at the host when you are ready (Netlify domain settings, or your registrar's DNS).
 
 ## Go-live checklist
-1. In your live Google Sheet copy of the operating workbook, add a `Trainer_Public_View` tab with the QUERY formula from `docs/SPEC.md`. It pulls only public-safe columns and only Active rows from `Trainer_Master`.
-2. Publish only `Trainer_Public_View` to the web: File, Share, Publish to web, choose the Trainer_Public_View tab, CSV, Publish. Copy the URL. Never publish `Trainer_Master` itself, it holds phone numbers, full names and internal notes.
+1. Create a brand-new, separate Google Sheet, for example "Spot — Public Trainer Feed." One tab, headers in row 1: `Trainer ID, Display Name, Status, Societies Served, Training Format, Current Open Slots, Specialisations, Price / Session, Typical Monthly Price, Certifications, Years Experience`. No formula, no connection to the operating workbook, see `docs/SPEC.md`.
+2. Publish that new file's tab to the web: File, Share, Publish to web, CSV, Publish. Copy the URL. Never publish anything from the operating workbook itself, that is where `Trainer_Master` and every other private tab lives.
 3. In `site/index.html`, set CONFIG.sheetCsvUrl to that URL and CONFIG.whatsappNumber to your business number.
-4. Recreate the two forms from `forms/` in Google Forms (mirrors Form_Trainer_Intake and Form_Customer_Request in the workbook). Point trainer intake responses at Trainer_Master (or copy them in). Point the intro request at Customer_Master and Customer_Requests.
+4. Recreate the two forms from `forms/` in Google Forms (mirrors Form_Trainer_Intake and Form_Customer_Request in the workbook). Point responses at their own Form Responses tab, then transfer to `Trainer_Master` by hand after screening, see `docs/SPEC.md`.
 5. Create an access-restricted Google Drive folder for IDs and certificates, linked from Trainer_Documents. Do not store these in the open sheet.
 6. Commit and push. Confirm the live URL shows your trainers rather than the sample banner, and that visiting `/docs/` or `/reference/` on the live URL 404s.
+7. From here on, every time a trainer goes Active, Paused or changes a public-facing detail, update her row in the public feed sheet by hand, in addition to `Trainer_Master`. The two files are not linked, see `docs/SPEC.md`'s "Keeping it in sync" note.
 
 ## Not now
 Google API automation (Sheets, Drive or Forms via credentials, or an Apps Script) is a later phase. At this stage everything Google is manual, and that is correct.

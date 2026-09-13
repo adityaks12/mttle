@@ -1,36 +1,41 @@
 # Spec, data model and page behaviour
 
 ## Reference workbook, the operating backend
-`reference/PT_Marketplace_Operating_Repository.xlsx` is the full manual operating backend: a multi-tab Google Sheet covering trainer profiles, availability, documents, reviews, societies, customers, requests, introductions, payments, followups, form question banks, controlled lists, an onboarding checklist and acquisition experiments. This is the source of truth for how the concierge operation runs.
+The operating backend is a live Google Sheet: a multi-tab workbook covering trainer profiles, availability, documents, reviews, societies, customers, requests, introductions, payments, followups, form question banks, controlled lists, an onboarding checklist and acquisition experiments. This is the source of truth for how the concierge operation runs, and it is edited in a browser at its own Google Sheets URL, never as a local file.
 
-`Trainer_Master` itself is never published to the web and never shared beyond you. It holds phone numbers, full legal names, consent flags and internal notes. "Publish to web" has no per-column redaction, so publishing `Trainer_Master` directly would ship every private field to anyone who finds the CSV URL, and that URL sits in plain text in `index.html`'s source on the live site. Instead, the browse page reads a second, derived tab: `Trainer_Public_View`.
+`reference/PT_Marketplace_Operating_Repository.xlsx`, sitting in this repo, is a downloaded snapshot of that live sheet, kept only for documentation so the schema is visible alongside the code. It is not connected to anything. Editing it does nothing to the live site, and it is never re-uploaded anywhere. If the live sheet's schema changes, this snapshot goes stale until someone re-downloads it, that is expected and fine.
 
-## Trainer_Public_View, the tab you actually publish
-A tab built with one formula, so it can never drift out of sync with `Trainer_Master` by hand:
+`Trainer_Master` itself is never published to the web and never shared beyond you. It holds phone numbers, full legal names, consent flags and internal notes. "Publish to web" has no per-column redaction, so publishing `Trainer_Master` directly would ship every private field to anyone who finds the CSV URL, and that URL sits in plain text in `site/index.html`'s source on the live site. It is also a poor idea to publish any tab from the same file `Trainer_Master` lives in at all, one wrong sharing setting on that file would then risk the whole business workbook, not just one tab. Instead, the browse page reads from a second, entirely separate Google Sheets file, with no formula link and no shared ownership between the two.
 
-```
-=QUERY(Trainer_Master!A:AB, "select A, B, Y, H, I, S, L, O, P, K, J where Y = 'Active'", 1)
-```
+## The public feed, a completely separate file
+A brand-new Google Sheet, for example named "Spot — Public Trainer Feed," containing nothing but one tab with these headers in row 1:
 
-Put this in cell A1. It pulls exactly these columns, header row included, and only rows where Status is Active: Trainer ID, Display Name, Status, Societies Served, Training Format, Current Open Slots, Specialisations, Price / Session, Typical Monthly Price, Certifications, Years Experience. Nothing else, so there is no phone number, full name, email, consent flag or internal note in this tab to leak in the first place. This is what you publish to web as CSV (see `docs/DEPLOY.md`), and its URL is what goes in `index.html`'s CONFIG.sheetCsvUrl.
+`Trainer ID, Display Name, Status, Societies Served, Training Format, Current Open Slots, Specialisations, Price / Session, Typical Monthly Price, Certifications, Years Experience`
 
-If `Trainer_Master`'s column order ever changes, update the letters in the QUERY string to match, and check the header text against `index.html`'s CONFIG.columns.
+There is no formula connecting it to `Trainer_Master`, deliberately. You type a row into this file by hand for every trainer who should be visible on the browse page, copying across only these eleven fields. Nothing else about her ever goes in this file: no phone number, no full name, no email, no ID status, no internal notes, because those columns do not exist in this file at all, there is nothing to leak by construction.
+
+This file, and only this file, ever gets **File, Share, Publish to web** run on it. Its CSV URL is what goes into `site/index.html`'s CONFIG.sheetCsvUrl. `Trainer_Master`'s own file is never published, never gets a public link, full stop.
 
 Public, rendered on the page: Display Name, Societies Served, Training Format, Certifications, Specialisations, Years Experience, Current Open Slots, Price / Session, Typical Monthly Price.
 
-Never in `Trainer_Public_View` and never shipped client-side: Full Name (Internal), Phone (Internal), Email, Gender, Primary Area, Languages, Session Length, Trial Offered, Accepting New Clients, Profile Photo, Professional Profile Link, Bio, Consent to List, Consent to Share Contact, Last Contacted, Last Availability Confirmed, Internal Notes. These stay in `Trainer_Master` only.
+Never in the public feed, because the file has no columns for them: Full Name, Phone, Email, Gender, Primary Area, Languages, Session Length, Trial Offered, Profile Photo, Professional Profile Link, Bio, consent flags, contact dates, internal notes. These stay in `Trainer_Master` only, in a different file entirely.
 
-Publish rule: the QUERY's `where Y = 'Active'` filter does the real work, so only Active rows ever leave `Trainer_Master`. The page's own `showStatuses` check is a second, defense-in-depth filter on top, not the only one. The controlled list for Status (see the `Lists` tab) is Lead, Contacted, Onboarding, Active, Paused, Full, Rejected, Inactive. If you want fully-booked trainers to stay visible with a "fully booked" note instead of disappearing, that is a product decision, raise it in chat first.
+Keeping it in sync is a manual step, deliberately, since there is no formula doing it for you:
+- **Going active**: once a trainer passes onboarding and you set her Status to Active in `Trainer_Master`, also add or update her row in the public feed file with the current values of those eleven fields. Setting her Status in `Trainer_Master` alone does nothing to the public page, the two files do not talk to each other.
+- **Going inactive**: to remove her from the page (Paused, Full, Rejected, or she has left), delete her row from the public feed file, or change its Status value to anything other than Active. Changing her Status in `Trainer_Master` alone is not enough.
+- **Any update** (price, open slots, availability, societies served), edit both files: the real record in `Trainer_Master`, and the mirrored fields in the public feed.
+
+The page's own `showStatuses` check (below) still filters to Active as a second, defense-in-depth layer, in case a non-Active row is ever left in the public feed by mistake.
 
 Multi-value cells (Societies Served, Specialisations) hold comma-separated values inside one cell. Google exports these as quoted CSV fields. The page has a CSV parser that handles quoted commas, so do not switch to a naive split on comma.
 
-## Browse page (`index.html`)
+## Browse page (`site/index.html`)
 A single self-contained file. The config block sits at the top of the script:
 - brandName, headline, tagline
-- sheetCsvUrl: the published CSV URL for the `Trainer_Public_View` tab, never `Trainer_Master`. Blank shows the built-in sample roster.
+- sheetCsvUrl: the published CSV URL for the separate public feed file, never anything from the `Trainer_Master` workbook. Blank shows the built-in sample roster.
 - whatsappNumber: the founder's business number in international format. The intro button messages this number.
 - showStatuses: ["Active"]
-- columns: a map from field to the exact Trainer_Public_View header. Matching is trimmed and case-insensitive.
+- columns: a map from field to the exact public feed header. Matching is trimmed and case-insensitive.
 
 Behaviour:
 - Fetch the CSV, parse it, map by header name, keep only showStatuses rows, and expose only public fields.

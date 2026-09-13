@@ -9,7 +9,7 @@ Pre-launch demand test, run concierge. No automation. Google Forms, Sheets and D
 
 ## Stack
 - Static site, single file: `site/index.html` (vanilla HTML, CSS and JS, no build step). `site/` is the only folder ever published; `docs/`, `reference/`, `forms/` and `data/` never get deployed and must stay out of any hosting publish directory.
-- Data source: a derived tab, `Trainer_Public_View`, in the operating workbook (kept live as a Google Sheet, snapshot in `reference/PT_Marketplace_Operating_Repository.xlsx`). It is a QUERY formula over `Trainer_Master` that keeps only public-safe columns and only Active rows, published to the web as CSV. Never publish `Trainer_Master` itself, it holds phone numbers, full names and internal notes. See `docs/SPEC.md`.
+- Data source: a completely separate Google Sheet, "Spot — Public Trainer Feed," with no formula link to the operating workbook (which holds `Trainer_Master` and everything else, kept live as a Google Sheet, snapshot in `reference/PT_Marketplace_Operating_Repository.xlsx`). The public feed is hand-maintained with only public-safe columns for Active trainers, published to the web as CSV. Never publish anything from the operating workbook itself, it holds phone numbers, full names and internal notes. See `docs/SPEC.md`.
 - Hosting: a GitHub repo connected to Netlify, publish directory `site` (see `netlify.toml`). Push to deploy. GitHub Pages is not used here since its subfolder option is fixed to `/docs`, which this repo already uses for project docs.
 - Fonts load from Google Fonts. No other dependencies.
 
@@ -33,14 +33,15 @@ Pre-launch demand test, run concierge. No automation. Google Forms, Sheets and D
 
 ## Key files
 - `site/index.html`, the browse page, and the only file ever published. The config block sits at the top of the script (brand, sheet URL, WhatsApp number, column map, publish statuses).
-- `reference/PT_Marketplace_Operating_Repository.xlsx`, the full operating workbook: trainer, society, customer, request, introduction, payment and followup tracking, plus the form question banks and controlled lists. The single source of truth for how the concierge operation runs, and never published anywhere. `docs/SPEC.md` describes every tab, including the `Trainer_Public_View` QUERY formula.
+- `reference/PT_Marketplace_Operating_Repository.xlsx`, a downloaded snapshot of the live operating workbook: trainer, society, customer, request, introduction, payment and followup tracking, plus the form question banks and controlled lists. Documentation only, not the live sheet, and never published anywhere. `docs/SPEC.md` describes every tab, and the separate public feed sheet that the browse page actually reads.
 - `docs/`, PROJECT, DECISIONS, SPEC, DEPLOY. Private, never published.
 - `forms/`, specs to recreate the two Google Forms by hand (mirrors the workbook's Form_Trainer_Intake and Form_Customer_Request tabs).
 - `data/sample-trainers.csv`, a reference of the expected Trainer_Master shape.
 
 ## Run and deploy
 - Preview: open `site/index.html` in a browser. With no sheet URL set, it shows sample trainers.
-- Go live: build `Trainer_Public_View` in the sheet (see `docs/SPEC.md`), publish that tab as CSV, paste the URL into CONFIG.sheetCsvUrl, set CONFIG.whatsappNumber, commit and push. Netlify redeploys from the `site` publish directory only.
+- Go live: create the separate public feed sheet (see `docs/SPEC.md`), publish it as CSV, paste the URL into CONFIG.sheetCsvUrl, set CONFIG.whatsappNumber, commit and push. Netlify redeploys from the `site` publish directory only.
+- Ongoing: the public feed sheet has no formula link to `Trainer_Master`, so every trainer change (going Active, Paused, a price or slot update) needs a matching hand edit in both files. See `docs/SPEC.md`'s "Keeping it in sync" note.
 
 ## How to work here
 Strategy, pricing, category and go-to-market decisions are made in chat and recorded in `docs/DECISIONS.md`. Build against those. If a task seems to need a new strategic decision, ask rather than deciding it in code.

@@ -12,10 +12,10 @@ Hyperlocal introduction and matching service connecting people with the personal
 - `site/index.html`, the browse page, and the only thing ever published to the live URL.
 - `CLAUDE.md`, project rules for Claude Code.
 - `docs/`, the idea, decisions, spec and deploy notes. Private, never published.
-- `reference/`, the full operating workbook (`PT_Marketplace_Operating_Repository.xlsx`): trainer, society, customer, request, introduction, payment and followup tracking, plus form question banks and controlled lists. `docs/SPEC.md` explains every tab. Private, never published.
+- `reference/`, a downloaded snapshot of the live operating workbook (`PT_Marketplace_Operating_Repository.xlsx`): trainer, society, customer, request, introduction, payment and followup tracking, plus form question banks and controlled lists. Documentation only, not the live sheet. `docs/SPEC.md` explains every tab. Private, never published.
 - `forms/`, Google Form specs to build by hand.
 - `data/`, a sample CSV showing the expected `Trainer_Master` shape.
 
-This repo stays private. The Trainer_Master tab in the operating workbook (phone numbers, full names, internal notes) is never published either, only a filtered `Trainer_Public_View` tab is. See `docs/SPEC.md`.
+This repo stays private. The operating workbook, where `Trainer_Master` lives (phone numbers, full names, internal notes), is never published either. The browse page reads from a completely separate, hand-maintained Google Sheet with no formula link to the workbook, holding only public-safe fields. See `docs/SPEC.md`.
 
 Style: no em dashes, sentence case, plain active voice.
