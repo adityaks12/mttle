@@ -10,24 +10,26 @@ The operating workbook is kept entirely offline: on the founder's own computer, 
 ## The public feed, a completely separate file
 A brand-new Google Sheet, for example named "Spot — Public Trainer Feed," containing nothing but one tab with these headers in row 1:
 
-`Trainer ID, Display Name, Status, Societies Served, Training Format, Current Open Slots, Specialisations, Price / Session, Typical Monthly Price, Certifications, Years Experience`
+`Trainer ID, Display Name, Status, Locality, Training Format, Current Open Slots, Specialisations, Price / Session, Typical Monthly Price, Certifications, Years Experience`
+
+`Locality` is a broad area (e.g. "Koramangala" or "HSR Layout, Koramangala"), not a list of specific societies. A trainer is not restricted to named societies, she serves whatever falls within her locality, so the field only needs to tell a customer whether the trainer covers her general area, not enumerate every complex.
 
 There is no formula connecting it to `Trainer_Master`, deliberately. You type a row into this file by hand for every trainer who should be visible on the browse page, copying across only these eleven fields. Nothing else about her ever goes in this file: no phone number, no full name, no email, no ID status, no internal notes, because those columns do not exist in this file at all, there is nothing to leak by construction.
 
 This file, and only this file, ever gets **File, Share, Publish to web** run on it. Its CSV URL is what goes into `site/index.html`'s CONFIG.sheetCsvUrl. `Trainer_Master`'s own file is never published, never gets a public link, full stop.
 
-Public, rendered on the page: Display Name, Societies Served, Training Format, Certifications, Specialisations, Years Experience, Current Open Slots, Price / Session, Typical Monthly Price.
+Public, rendered on the page: Display Name, Locality, Training Format, Certifications, Specialisations, Years Experience, Current Open Slots, Price / Session, Typical Monthly Price.
 
-Never in the public feed, because the file has no columns for them: Full Name, Phone, Email, Gender, Primary Area, Languages, Session Length, Trial Offered, Profile Photo, Professional Profile Link, Bio, consent flags, contact dates, internal notes. These stay in `Trainer_Master` only, in a different file entirely.
+Never in the public feed, because the file has no columns for them: Full Name, Phone, Email, Gender, Languages, Session Length, Trial Offered, Profile Photo, Professional Profile Link, Bio, consent flags, contact dates, internal notes. These stay in `Trainer_Master` only, in a different file entirely.
 
 Keeping it in sync is a manual step, deliberately, since there is no formula doing it for you:
 - **Going active**: once a trainer passes onboarding and you set her Status to Active in `Trainer_Master`, also add or update her row in the public feed file with the current values of those eleven fields. Setting her Status in `Trainer_Master` alone does nothing to the public page, the two files do not talk to each other.
 - **Going inactive**: to remove her from the page (Paused, Full, Rejected, or she has left), delete her row from the public feed file, or change its Status value to anything other than Active. Changing her Status in `Trainer_Master` alone is not enough.
-- **Any update** (price, open slots, availability, societies served), edit both files: the real record in `Trainer_Master`, and the mirrored fields in the public feed.
+- **Any update** (price, open slots, availability, locality), edit both files: the real record in `Trainer_Master`, and the mirrored fields in the public feed.
 
 The page's own `showStatuses` check (below) still filters to Active as a second, defense-in-depth layer, in case a non-Active row is ever left in the public feed by mistake.
 
-Multi-value cells (Societies Served, Specialisations) hold comma-separated values inside one cell. Google exports these as quoted CSV fields. The page has a CSV parser that handles quoted commas, so do not switch to a naive split on comma.
+Multi-value cells (Locality, Specialisations) hold comma-separated values inside one cell. Google exports these as quoted CSV fields. The page has a CSV parser that handles quoted commas, so do not switch to a naive split on comma.
 
 ## The schedule feed, optional, a third separate file
 A raw open-slots count does not tell a customer whether a trainer is free when she actually wants a session. A third Google Sheet, for example "Spot — Trainer Schedule," fixes that: one tab, headers in row 1:
@@ -36,7 +38,7 @@ A raw open-slots count does not tell a customer whether a trainer is free when s
 
 One row per trainer per recurring weekly slot (so a trainer with three weekly windows has three rows). `Day` is a full weekday name (Monday..Sunday). `Currently Open` is Yes or No, so a slot can be temporarily marked taken without deleting the row. No PII here either, `Trainer ID` is the only join key, matched against the public feed's `Trainer ID`.
 
-Publish this tab the same way, CSV, and put its URL in `site/index.html`'s CONFIG.scheduleCsvUrl. This is additive, not required: a trainer with rows in this feed shows her actual open days and times on her card (e.g. "Mon 6:00 AM–8:00 AM, Wed 6:00 AM–8:00 AM"), sorted Monday to Sunday and filtered to `Currently Open = Yes` only; a trainer with no rows here falls back to the public feed's `Current Open Slots` number, so leaving CONFIG.scheduleCsvUrl blank, or a trainer having no schedule rows, degrades gracefully rather than breaking anything.
+Publish this tab the same way, CSV, and put its URL in `site/index.html`'s CONFIG.scheduleCsvUrl. This is additive, not required: a trainer with rows in this feed shows her actual open days and times on her card as a stacked list, one slot per line (e.g. "Mon 6:00 AM–8:00 AM" on its own line, "Wed 6:00 AM–8:00 AM" on the next), sorted Monday to Sunday then by start time and filtered to `Currently Open = Yes` only. The list scroll-caps at a few visible rows so a trainer with many slots does not stretch her card taller than everyone else's, the rest are still there on scroll. A trainer with no rows here falls back to the public feed's `Current Open Slots` number, so leaving CONFIG.scheduleCsvUrl blank, or a trainer having no schedule rows, degrades gracefully rather than breaking anything.
 
 Keeping it in sync is the same manual discipline as the public feed: update this file's rows whenever a trainer's actual availability changes, there is no formula linking it to anything either.
 

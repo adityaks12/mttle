@@ -15,7 +15,7 @@ GitHub Pages is not a good fit here: its subfolder option is fixed to `/docs`, w
 Custom domain: point spot.in at the host when you are ready (Netlify domain settings, or your registrar's DNS).
 
 ## Go-live checklist
-1. Create a brand-new, separate Google Sheet, for example "Spot — Public Trainer Feed." One tab, headers in row 1: `Trainer ID, Display Name, Status, Societies Served, Training Format, Current Open Slots, Specialisations, Price / Session, Typical Monthly Price, Certifications, Years Experience`. No formula, no connection to the operating workbook, see `docs/SPEC.md`.
+1. Create a brand-new, separate Google Sheet, for example "Spot — Public Trainer Feed." One tab, headers in row 1: `Trainer ID, Display Name, Status, Locality, Training Format, Current Open Slots, Specialisations, Price / Session, Typical Monthly Price, Certifications, Years Experience`. Locality is a broad area, not a list of named societies a trainer is restricted to. No formula, no connection to the operating workbook, see `docs/SPEC.md`.
 2. Publish that new file's tab to the web: File, Share, Publish to web, CSV, Publish. Copy the URL. Never publish anything from the operating workbook itself, that is where `Trainer_Master` and every other private tab lives.
 3. In `site/index.html`, set CONFIG.sheetCsvUrl to that URL and CONFIG.whatsappNumber to your business number.
 4. Recreate the two forms from `forms/` in Google Forms (mirrors Form_Trainer_Intake and Form_Customer_Request in the workbook). Point responses at their own Form Responses tab, then transfer to `Trainer_Master` by hand after screening, see `docs/SPEC.md`.

@@ -1,5 +1,5 @@
-Trainer ID,Display Name,Status,Societies Served,Training Format,Current Open Slots,Specialisations,Price / Session,Typical Monthly Price,Certifications,Years Experience
-T001,Priya,Active,"Koramangala Greens, HSR Sunrise Enclave",Society Gym,3,"General fitness, PCOS-aware fitness",800,6000,"K11, ACE",5
-T002,Anjali,Active,HSR Sunrise Enclave,"Society Gym, Home",1,"Weight loss, General fitness",700,5500,ACSM,4
-T003,Meera,Active,"5th Block Residency, Koramangala Greens",Society Gym,2,"Beginner fitness, PCOS-aware fitness",900,7000,K11,6
-T004,Reshma,Paused,Silver Oak HSR,Society Gym,0,"General fitness, Beginner fitness",650,5000,Gold's Academy,3
+Trainer ID,Display Name,Status,Locality,Training Format,Current Open Slots,Specialisations,Price / Session,Typical Monthly Price,Certifications,Years Experience
+T001,Priya,Active,Koramangala,Society Gym,3,"General fitness, PCOS-aware fitness",800,6000,"K11, ACE",5
+T002,Anjali,Active,HSR Layout,"Society Gym, Home",1,"Weight loss, General fitness",700,5500,ACSM,4
+T003,Meera,Active,"Koramangala, HSR Layout",Society Gym,2,"Beginner fitness, PCOS-aware fitness",900,7000,K11,6
+T004,Reshma,Paused,HSR Layout,Society Gym,0,"General fitness, Beginner fitness",650,5000,Gold's Academy,3

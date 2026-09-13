@@ -11,8 +11,10 @@
   ============================================================
   1. Create a brand-new, SEPARATE Google Sheet (not your operating workbook), e.g.
      "Spot — Public Trainer Feed." One tab, headers in row 1: Trainer ID, Display Name,
-     Status, Societies Served, Training Format, Current Open Slots, Specialisations,
+     Status, Locality, Training Format, Current Open Slots, Specialisations,
      Price / Session, Typical Monthly Price, Certifications, Years Experience.
+     Locality is a broad area (e.g. "Koramangala" or "HSR Layout, Koramangala"),
+     not a list of specific societies, a trainer is not restricted to named societies.
      No formula, no link to Trainer_Master, see docs/SPEC.md. Type a row by hand for
      each trainer who should show publicly.
      File > Share > Publish to web > Comma-separated values (.csv) > Publish.
@@ -105,9 +107,12 @@
   .tags{display:flex; flex-wrap:wrap; gap:7px; margin-bottom:18px}
   .tag{font-size:13px; background:var(--signal-tint); color:var(--signal-deep); border-radius:6px; padding:4px 10px; font-weight:500}
   .meta{margin:0 0 18px; display:grid; gap:11px}
-  .meta .row{display:grid; grid-template-columns:80px 1fr; gap:10px; align-items:baseline}
-  .meta dt{font-size:13px; color:var(--muted)}
+  .meta .row{display:grid; grid-template-columns:80px 1fr; gap:10px; align-items:start}
+  .meta dt{font-size:13px; color:var(--muted); padding-top:1px}
   .meta dd{margin:0; font-size:14.5px; color:var(--ink)}
+  .slotlist{list-style:none; margin:0; padding:0 4px 0 0; display:flex; flex-direction:column;
+    gap:5px; max-height:92px; overflow-y:auto}
+  .slotlist li{font-size:14px; line-height:1.3}
   .price{display:flex; align-items:baseline; gap:7px; margin-top:auto; padding-top:16px; border-top:1px solid var(--line)}
   .price .amt{font-family:var(--display); font-weight:700; font-size:23px; color:var(--ink)}
   .price .per{font-size:13px; color:var(--muted)}
@@ -145,8 +150,8 @@
 
   <div class="filters">
     <div class="field">
-      <label for="society">Your society</label>
-      <select id="society" aria-label="Filter by society"><option value="__all">All societies</option></select>
+      <label for="area">Your area</label>
+      <select id="area" aria-label="Filter by area"><option value="__all">All areas</option></select>
     </div>
     <div class="field">
       <label id="speclabel">Focus</label>
@@ -194,7 +199,7 @@ const CONFIG = {
     id:              "Trainer ID",
     name:            "Display Name",
     status:          "Status",
-    societies:       "Societies Served",
+    locality:        "Locality",
     delivery:        "Training Format",
     openSlots:       "Current Open Slots",
     specializations: "Specialisations",
@@ -220,7 +225,7 @@ const SC = CONFIG.scheduleColumns;
 const DAY_ORDER = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 let ALL = [];
 let SCHEDULE = {}; // trainerId -> [{day, start, end}], open slots only
-let filterSociety = "__all";
+let filterArea = "__all";
 let filterSpec = "__all";
 
 function parseCSV(text){
@@ -261,6 +266,14 @@ function rowsToObjects(rows, columnMap){
     });
 }
 
+function timeToMinutes(t){
+  const m = (t||"").trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+  if(!m) return 0;
+  let h = parseInt(m[1],10)%12;
+  if((m[3]||"").toUpperCase()==="PM") h += 12;
+  return h*60 + parseInt(m[2],10);
+}
+
 function buildSchedule(rows){
   const byId = {};
   rows.forEach(r=>{
@@ -272,19 +285,19 @@ function buildSchedule(rows){
     slots.sort((a,b)=>{
       const da = DAY_ORDER.indexOf(a.day), db = DAY_ORDER.indexOf(b.day);
       if(da !== db) return da - db;
-      return (a.start||"").localeCompare(b.start||"");
+      return timeToMinutes(a.start) - timeToMinutes(b.start);
     });
   });
   return byId;
 }
 
-function slotsText(t){
+function slotsList(t){
   const slots = SCHEDULE[t.id];
   if(!slots || !slots.length) return null;
   return slots.map(s=>{
     const day = (s.day||"").slice(0,3);
     return s.start && s.end ? `${day} ${s.start}–${s.end}` : day;
-  }).join(", ");
+  });
 }
 
 function splitList(s){return (s||"").split(",").map(x=>x.trim()).filter(Boolean);}
@@ -297,17 +310,17 @@ function avatarColor(){ return "var(--ink)"; }
 function esc(s){return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 
 function buildFilters(){
-  const socSel = document.getElementById("society");
-  const societies = new Set();
+  const areaSel = document.getElementById("area");
+  const areas = new Set();
   const specs = new Set();
   ALL.forEach(t=>{
-    splitList(t.societies).forEach(s=>societies.add(s));
+    splitList(t.locality).forEach(s=>areas.add(s));
     splitList(t.specializations).forEach(s=>specs.add(s));
   });
-  [...societies].sort().forEach(s=>{
-    const o=document.createElement("option"); o.value=s; o.textContent=s; socSel.appendChild(o);
+  [...areas].sort().forEach(s=>{
+    const o=document.createElement("option"); o.value=s; o.textContent=s; areaSel.appendChild(o);
   });
-  socSel.addEventListener("change",()=>{filterSociety=socSel.value; render();});
+  areaSel.addEventListener("change",()=>{filterArea=areaSel.value; render();});
 
   const chipWrap = document.getElementById("specChips");
   const makeChip=(val,label)=>{
@@ -325,7 +338,7 @@ function buildFilters(){
 }
 
 function matches(t){
-  if(filterSociety!=="__all" && !splitList(t.societies).includes(filterSociety)) return false;
+  if(filterArea!=="__all" && !splitList(t.locality).includes(filterArea)) return false;
   if(filterSpec!=="__all" && !splitList(t.specializations).includes(filterSpec)) return false;
   return true;
 }
@@ -340,10 +353,10 @@ function cardHTML(t){
   const tags = splitList(t.specializations).map(s=>`<span class="tag">${esc(s)}</span>`).join("");
   const sess = fmtRs(t.priceSession), month = fmtRs(t.priceMonth);
   const rows = [];
-  if(t.societies)   rows.push(`<div class="row"><dt>Trains at</dt><dd>${esc(splitList(t.societies).join(", "))}</dd></div>`);
+  if(t.locality)    rows.push(`<div class="row"><dt>Area</dt><dd>${esc(splitList(t.locality).join(", "))}</dd></div>`);
   if(t.delivery)    rows.push(`<div class="row"><dt>Where</dt><dd>${esc(splitList(t.delivery).join(", "))}</dd></div>`);
-  const slots = slotsText(t);
-  if(slots)              rows.push(`<div class="row"><dt>Available</dt><dd>${esc(slots)}</dd></div>`);
+  const slots = slotsList(t);
+  if(slots)              rows.push(`<div class="row row-slots"><dt>Available</dt><dd><ul class="slotlist">${slots.map(s=>`<li>${esc(s)}</li>`).join("")}</ul></dd></div>`);
   else if(t.openSlots)   rows.push(`<div class="row"><dt>Open slots</dt><dd>${esc(t.openSlots)}</dd></div>`);
   if(t.certs)       rows.push(`<div class="row"><dt>Certified</dt><dd>${esc(t.certs)}</dd></div>`);
   const priceBlock = sess
@@ -371,7 +384,7 @@ function render(){
     grid.innerHTML = ALL.length
       ? `<div class="state" style="grid-column:1/-1">
           <h2>No trainers match yet</h2>
-          <p>Try another society or clear the focus filter. We are adding trainers every week.</p></div>`
+          <p>Try another area or clear the focus filter. We are adding trainers every week.</p></div>`
       : `<div class="state" style="grid-column:1/-1">
           <h2>No trainers listed yet</h2>
           <p>We are onboarding trainers now. Check back soon.</p></div>`;

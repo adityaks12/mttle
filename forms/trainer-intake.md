@@ -20,7 +20,7 @@ Field bank lives in the operating workbook (kept offline, not in this repo), tab
 
 ## Service
 - Training format (checkboxes: society gym, client gym, home, outdoor, online). Customer facing.
-- Areas or societies served (checkboxes plus paragraph, list specific societies and localities). Customer facing.
+- Locality served (checkboxes plus paragraph, broad areas like Koramangala or HSR Layout, not a restrictive list of named societies, she is not limited to only those). Customer facing.
 - Maximum travel distance (number, km). Internal, informs matching.
 - Session length (dropdown: 45, 60, 75, 90 minutes). Customer facing.
 
