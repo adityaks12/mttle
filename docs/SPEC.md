@@ -10,22 +10,33 @@ The operating workbook is kept entirely offline: on the founder's own computer, 
 ## The public feed, a completely separate file
 A brand-new Google Sheet, for example named "Spot — Public Trainer Feed," containing nothing but one tab with these headers in row 1:
 
-`Trainer ID, Display Name, Status, Locality, Training Format, Current Open Slots, Specialisations, Price / Session, Typical Monthly Price, Certifications, Years Experience`
+`Trainer ID, Display Name, Status, Locality, Training Format, Current Open Slots, Specialisations, Price / Session, Typical Monthly Price, Certifications, Years Experience, Photo 1 URL, Photo 2 URL`
 
 `Locality` is a broad area (e.g. "Koramangala" or "HSR Layout, Koramangala"), not a list of specific societies. A trainer is not restricted to named societies, she serves whatever falls within her locality, so the field only needs to tell a customer whether the trainer covers her general area, not enumerate every complex.
 
-There is no formula connecting it to `Trainer_Master`, deliberately. You type a row into this file by hand for every trainer who should be visible on the browse page, copying across only these eleven fields. Nothing else about her ever goes in this file: no phone number, no full name, no email, no ID status, no internal notes, because those columns do not exist in this file at all, there is nothing to leak by construction.
+`Photo 1 URL` and `Photo 2 URL` are optional, direct image links to already-watermarked photos, see "Photos" below. A trainer with neither shows an initial-letter avatar instead, nothing breaks.
+
+There is no formula connecting it to `Trainer_Master`, deliberately. You type a row into this file by hand for every trainer who should be visible on the browse page, copying across only these fields. Nothing else about her ever goes in this file: no phone number, no full name, no email, no ID status, no internal notes, because those columns do not exist in this file at all, there is nothing to leak by construction.
 
 This file, and only this file, ever gets **File, Share, Publish to web** run on it. Its CSV URL is what goes into `site/index.html`'s CONFIG.sheetCsvUrl. `Trainer_Master`'s own file is never published, never gets a public link, full stop.
 
-Public, rendered on the page: Display Name, Locality, Training Format, Certifications, Specialisations, Years Experience, Current Open Slots, Price / Session, Typical Monthly Price.
+Public, rendered on the page: Display Name, Locality, Training Format, Certifications, Specialisations, Years Experience, Current Open Slots, Price / Session, Typical Monthly Price, and the two photos.
 
-Never in the public feed, because the file has no columns for them: Full Name, Phone, Email, Gender, Languages, Session Length, Trial Offered, Profile Photo, Professional Profile Link, Bio, consent flags, contact dates, internal notes. These stay in `Trainer_Master` only, in a different file entirely.
+Never in the public feed, because the file has no columns for them: Full Name, Phone, Email, Gender, Languages, Session Length, Trial Offered, Professional Profile Link, Bio, consent flags, contact dates, internal notes. These stay in `Trainer_Master` only, in a different file entirely.
 
 Keeping it in sync is a manual step, deliberately, since there is no formula doing it for you:
-- **Going active**: once a trainer passes onboarding and you set her Status to Active in `Trainer_Master`, also add or update her row in the public feed file with the current values of those eleven fields. Setting her Status in `Trainer_Master` alone does nothing to the public page, the two files do not talk to each other.
+- **Going active**: once a trainer passes onboarding and you set her Status to Active in `Trainer_Master`, also add or update her row in the public feed file with the current values of those fields. Setting her Status in `Trainer_Master` alone does nothing to the public page, the two files do not talk to each other.
 - **Going inactive**: to remove her from the page (Paused, Full, Rejected, or she has left), delete her row from the public feed file, or change its Status value to anything other than Active. Changing her Status in `Trainer_Master` alone is not enough.
 - **Any update** (price, open slots, availability, locality), edit both files: the real record in `Trainer_Master`, and the mirrored fields in the public feed.
+
+### Photos
+Google Sheets cells hold a URL, not an image file, and a photo needs a direct-image link to actually render, not a normal Drive share link (which opens Drive's preview page instead of the raw image). To get one:
+1. Watermark the photo yourself before uploading anywhere (your stated reason: so it cannot be reverse-searched to find her by name). This is done outside Spot entirely, in whatever image editor you use.
+2. Upload the watermarked photo to Google Drive, right-click it, Share, set to "Anyone with the link."
+3. Copy its share link and pull out the file ID, the long string between `/d/` and `/view`.
+4. Build the direct-image URL: `https://lh3.googleusercontent.com/d/FILE_ID`. Paste that into `Photo 1 URL` (or `Photo 2 URL`).
+
+A trainer needs neither photo to show up, `Photo 1 URL` blank just means the initial-letter avatar is used instead, on both the card and her profile page.
 
 The page's own `showStatuses` check (below) still filters to Active as a second, defense-in-depth layer, in case a non-Active row is ever left in the public feed by mistake.
 
@@ -42,24 +53,36 @@ Publish this tab the same way, CSV, and put its URL in `site/index.html`'s CONFI
 
 Keeping it in sync is the same manual discipline as the public feed: update this file's rows whenever a trainer's actual availability changes, there is no formula linking it to anything either.
 
+## The reviews feed, optional, a fourth separate file
+A fourth Google Sheet, for example "Spot — Trainer Reviews," one tab, headers in row 1:
+
+`Trainer ID, Reviewer First Name, Rating, Testimonial, Date`
+
+One row per review. `Reviewer First Name` is deliberately first-name-only (or an initial, your call), the same privacy stance applied to trainers extends to the customers leaving reviews about them. `Rating` is 1 to 5. Only add a review here once you have the client's permission to display it publicly, this mirrors the internal `Trainer_Reviews` tab's "Permission to Display" field.
+
+Publish this tab the same way, CSV, into `site/index.html`'s CONFIG.reviewsCsvUrl. Additive and optional like the schedule feed: a trainer with no reviews here just shows no reviews section on her profile page, nothing breaks. Reviews only ever appear on the profile page, never on the card, to keep cards scannable.
+
 ## Browse page (`site/index.html`)
 A single self-contained file. The config block sits at the top of the script:
 - brandName, headline, tagline
 - sheetCsvUrl: the published CSV URL for the separate public feed file, never anything from the `Trainer_Master` workbook. Blank shows an empty "no trainers listed yet" state, there is no placeholder data anywhere in this file.
 - scheduleCsvUrl: the published CSV URL for the separate schedule feed file, optional. Blank, or a fetch failure, just means every card falls back to the open-slots count, it never blocks or breaks the main trainer list.
+- reviewsCsvUrl: the published CSV URL for the separate reviews feed file, optional. Blank just means no reviews section on any profile page.
 - whatsappNumber: the founder's business number in international format. The intro button messages this number.
 - showStatuses: ["Active"]
 - columns: a map from field to the exact public feed header. Matching is trimmed and case-insensitive.
-- scheduleColumns: same idea, for the schedule feed's headers.
+- scheduleColumns, reviewColumns: same idea, for the schedule and reviews feeds' headers.
 
 Behaviour:
-- Fetch both CSVs in parallel. The schedule fetch is wrapped so its failure never surfaces as an error or blocks the trainer list, since it is a nice-to-have.
+- Fetch all three CSVs in parallel. The schedule and reviews fetches are wrapped so a failure in either never surfaces as an error or blocks the trainer list, since both are nice-to-haves.
 - Parse each, map by header name, keep only showStatuses rows from the public feed, and expose only public fields.
-- Build a trainer-ID keyed schedule map from the schedule feed, `Currently Open = Yes` rows only, sorted Monday to Sunday then by start time.
-- Filters: society (a dropdown built from the data) and focus or specialization (chips built from the data).
-- Card: first-name avatar, name, years, specialization tags, trains-at, training format, actual available days/times if the schedule feed has rows for her, else the open-slots count, certified, price, and a "Request an intro" button.
+- Build a trainer-ID keyed schedule map from the schedule feed, `Currently Open = Yes` rows only, sorted Monday to Sunday then by start time. Build a trainer-ID keyed reviews map from the reviews feed.
+- Filters: area (a dropdown built from Locality), focus or specialization (chips built from the data), and a Favourites-only toggle.
+- Card: photo or initial-letter avatar, name, years, locality as chips, specialization tags, training format, which days she's free (not full times) if the schedule feed has rows for her else the open-slots count, certifications, price, a favourite (heart) toggle, and a "Request an intro" button. Clicking anywhere on the card except the heart or the intro button opens her profile page.
+- Profile page: opened via a `#trainer=ID` URL hash (shareable, works with the browser back button), shows everything the card shows plus both photos if set, the full schedule (all days and times, not just which days), and a reviews section if any exist for her. Also has its own "Request an intro" button and favourite toggle, and a link back to the browse grid.
+- Favourites: saved to the browser's local storage only, no login and no server involved. Per-device, does not sync across a customer's phone and laptop, which is the accepted tradeoff for shipping this without an accounts system.
 - The intro button opens wa.me to whatsappNumber with the trainer's display name and ID prefilled. It never contains the trainer's number.
-- States: loading, empty with no sheet configured ("no trainers listed yet"), empty because the feed genuinely has zero Active rows (same message), empty because filters matched nothing (a different, filter-specific message), and error on the main feed (a note, then the same empty state, never placeholder data). The schedule feed has no error state of its own, it just silently falls back per trainer.
+- States: loading, empty with no sheet configured ("no trainers listed yet"), empty because the feed genuinely has zero Active rows (same message), empty because filters matched nothing (a different, filter-specific message), empty because the Favourites toggle is on and nothing is saved yet (a third message), and error on the main feed (a note, then the same empty state, never placeholder data). The schedule and reviews feeds have no error state of their own, they just silently fall back per trainer.
 
 ## The rest of the workbook
 - `Trainer_Availability`, `Trainer_Documents`, `Trainer_Reviews`: kept separate from `Trainer_Master` so profile edits do not disturb scheduling, compliance or credibility records. The browse page does not read these; they are internal.

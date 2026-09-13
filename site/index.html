@@ -12,9 +12,13 @@
   1. Create a brand-new, SEPARATE Google Sheet (not your operating workbook), e.g.
      "Spot — Public Trainer Feed." One tab, headers in row 1: Trainer ID, Display Name,
      Status, Locality, Training Format, Current Open Slots, Specialisations,
-     Price / Session, Typical Monthly Price, Certifications, Years Experience.
+     Price / Session, Typical Monthly Price, Certifications, Years Experience,
+     Photo 1 URL, Photo 2 URL.
      Locality is a broad area (e.g. "Koramangala" or "HSR Layout, Koramangala"),
      not a list of specific societies, a trainer is not restricted to named societies.
+     Photo columns are optional: direct image links to already-watermarked photos
+     (see docs/SPEC.md for the Google Drive direct-link format). No photo, no problem,
+     an initial-letter avatar is used instead.
      No formula, no link to Trainer_Master, see docs/SPEC.md. Type a row by hand for
      each trainer who should show publicly.
      File > Share > Publish to web > Comma-separated values (.csv) > Publish.
@@ -30,13 +34,22 @@
   A trainer shows on the page only when her Status is Active in the PUBLIC FEED sheet.
   The two sheets are not linked, so update her row in both places, every time.
 
+  Clicking a card opens her profile page (a #trainer=ID URL, shareable), showing her
+  photos, full schedule and reviews in one place. Customers can save/unsave favourites,
+  saved to their own browser's local storage only, no login or backend involved.
+
   OPTIONAL: real time slots instead of a raw open-slots count.
   Create a THIRD, separate Google Sheet, one tab, headers: Trainer ID, Day, Start Time,
   End Time, Currently Open. One row per trainer per recurring weekly slot. Publish to
   web as CSV same as above, paste the URL into CONFIG.scheduleCsvUrl. A trainer with
-  rows here shows her actual open days/times instead of a number; a trainer with none
-  falls back to the Current Open Slots count from the public feed, so this is additive,
-  not required.
+  rows here shows which days she's free on her card, and her full times on her profile
+  page; a trainer with none falls back to the Current Open Slots count, so this is
+  additive, not required.
+
+  OPTIONAL: reviews on the profile page.
+  Create a FOURTH, separate Google Sheet, one tab, headers: Trainer ID, Reviewer First
+  Name, Rating, Testimonial, Date. Publish to web as CSV, paste the URL into
+  CONFIG.reviewsCsvUrl. A trainer with no rows here just shows no reviews section.
 
   SWITCH COLOURWAY: change --signal, --signal-deep and --signal-tint in :root.
      Volt lime   : #86CB3C / #4D7C0F / #ECF6D6
@@ -95,15 +108,27 @@
   .state{padding:60px 0; text-align:center; color:var(--muted)}
   .state h2{font-family:var(--display); font-weight:600; color:var(--ink); font-size:24px; margin:0 0 8px}
 
+  .favtoggle{font-family:var(--sans); font-size:14px; color:var(--ink); background:transparent;
+    border:1px solid var(--line); border-radius:999px; padding:8px 15px; cursor:pointer}
+  .favtoggle[aria-pressed="true"]{background:var(--signal-tint); color:var(--signal-deep); border-color:var(--signal-tint)}
+
   .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin:24px 0 64px}
-  .card{background:var(--card); border:1px solid var(--line); border-radius:12px;
-    padding:22px; display:flex; flex-direction:column; transition:border-color .15s ease}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:12px; position:relative;
+    padding:22px; display:flex; flex-direction:column; transition:border-color .15s ease; cursor:pointer}
   .card:hover{border-color:var(--ink)}
+  .favbtn{position:absolute; top:14px; right:14px; width:34px; height:34px; border-radius:50%;
+    border:1px solid var(--line); background:var(--card); color:#C0392B; font-size:17px; line-height:1;
+    cursor:pointer; display:grid; place-items:center; z-index:1}
+  .favbtn:hover{border-color:#C0392B}
   .card-top{display:flex; align-items:center; gap:14px; margin-bottom:16px}
   .avatar{width:54px;height:54px;flex:0 0 54px;border-radius:50%;display:grid;place-items:center;
     color:var(--paper);font-family:var(--display);font-weight:700;font-size:23px}
+  .avatar-photo{width:54px;height:54px;flex:0 0 54px;border-radius:50%;object-fit:cover;background:var(--sand)}
   .name{font-family:var(--display); font-weight:700; font-size:22px; margin:0; line-height:1.08; letter-spacing:-.01em}
   .years{margin:3px 0 0; font-size:13px; color:var(--muted)}
+  .loc-chips{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px}
+  .loc-chip{font-size:12.5px; background:var(--sand); color:var(--ink); border:1px solid var(--line);
+    border-radius:999px; padding:3px 10px}
   .tags{display:flex; flex-wrap:wrap; gap:7px; margin-bottom:18px}
   .tag{font-size:13px; background:var(--signal-tint); color:var(--signal-deep); border-radius:6px; padding:4px 10px; font-weight:500}
   .meta{margin:0 0 18px; display:grid; gap:11px}
@@ -121,7 +146,34 @@
     background:var(--signal-deep); color:#fff; font-family:var(--sans); font-weight:600; font-size:15px;
     border-radius:10px; padding:13px 16px; transition:background .15s ease}
   .cta:hover{background:var(--ink)}
-  .cta:focus-visible, .chip:focus-visible, select:focus-visible{outline:2px solid var(--signal); outline-offset:2px}
+  .cta:focus-visible, .chip:focus-visible, select:focus-visible, .favtoggle:focus-visible, .favbtn:focus-visible{
+    outline:2px solid var(--signal); outline-offset:2px}
+
+  /* Profile page */
+  .back{display:inline-flex; align-items:center; gap:6px; color:var(--signal-deep); font-weight:600;
+    font-size:14px; text-decoration:none; margin:28px 0 20px; background:none; border:none; cursor:pointer;
+    font-family:var(--sans); padding:0}
+  .back:hover{text-decoration:underline}
+  .profile-top{display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start; margin-bottom:8px}
+  .profile-info .favbtn{position:static; margin-top:14px}
+  .profile-photos{display:flex; gap:10px; flex:0 0 auto}
+  .profile-photos img{width:140px; height:140px; border-radius:12px; object-fit:cover; background:var(--sand)}
+  .profile-info{flex:1; min-width:240px}
+  .profile-info .name{font-size:30px}
+  .profile-body{max-width:640px; margin-top:20px}
+  .profile-body .meta{margin-bottom:24px}
+  .profile-body .row{grid-template-columns:120px 1fr}
+  .profile-body .slotlist{max-height:none}
+  .profile-cta{max-width:320px}
+  .reviews{margin:32px 0 64px; max-width:640px}
+  .reviews h2{font-family:var(--display); font-size:20px; margin:0 0 16px}
+  .review{border-top:1px solid var(--line); padding:16px 0}
+  .review:first-child{border-top:none; padding-top:0}
+  .review-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px}
+  .review-name{font-weight:600; font-size:14.5px}
+  .review-stars{color:var(--signal-deep); font-size:14px; letter-spacing:1px}
+  .review-date{color:var(--muted); font-size:12.5px}
+  .review-text{margin:0; font-size:14.5px; color:var(--ink); line-height:1.5}
 
   footer{border-top:1px solid var(--line); padding:24px 0 44px; color:var(--muted); font-size:13px}
   .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
@@ -132,6 +184,7 @@
     .hero h1{font-size:31px}
     select,.field{width:100%; min-width:0}
     .count{margin-left:0}
+    .profile-photos img{width:100px; height:100px}
   }
   @media (prefers-reduced-motion:reduce){ *{transition:none!important} }
 </style>
@@ -148,20 +201,25 @@
     </div>
   </header>
 
-  <div class="filters">
-    <div class="field">
-      <label for="area">Your area</label>
-      <select id="area" aria-label="Filter by area"><option value="__all">All areas</option></select>
+  <div id="browseView">
+    <div class="filters">
+      <div class="field">
+        <label for="area">Your area</label>
+        <select id="area" aria-label="Filter by area"><option value="__all">All areas</option></select>
+      </div>
+      <div class="field">
+        <label id="speclabel">Focus</label>
+        <div class="chips" role="group" aria-labelledby="speclabel" id="specChips"></div>
+      </div>
+      <button type="button" class="favtoggle" id="favToggle" aria-pressed="false">♡ Favourites</button>
+      <div class="count" id="count" aria-live="polite"></div>
     </div>
-    <div class="field">
-      <label id="speclabel">Focus</label>
-      <div class="chips" role="group" aria-labelledby="speclabel" id="specChips"></div>
-    </div>
-    <div class="count" id="count" aria-live="polite"></div>
+
+    <div id="noteSlot"></div>
+    <main id="grid" class="grid" aria-live="polite"></main>
   </div>
 
-  <div id="noteSlot"></div>
-  <main id="grid" class="grid" aria-live="polite"></main>
+  <div id="profileView" hidden></div>
 
   <footer>
     <span id="footBrand">Spot</span> is an introduction service that connects clients with independent trainers.
@@ -189,7 +247,12 @@ const CONFIG = {
 
   // Your business WhatsApp number in international format, digits only (e.g. 919812345678).
   // This is who the "Request an intro" button messages. Trainer numbers are never shown.
-  whatsappNumber: "919812345678",
+  whatsappNumber: "8551091411",
+
+  // Paste the published-to-web CSV URL for the separate reviews sheet here.
+  // One row per review: Trainer ID, Reviewer First Name, Rating, Testimonial, Date.
+  // Leave "" and the profile page just shows no reviews section.
+  reviewsCsvUrl: "",
 
   // A trainer is listed only when her Status is one of these.
   showStatuses: ["Active"],
@@ -206,7 +269,9 @@ const CONFIG = {
     priceSession:    "Price / Session",
     priceMonth:      "Typical Monthly Price",
     certs:           "Certifications",
-    years:           "Years Experience"
+    years:           "Years Experience",
+    photo1:          "Photo 1 URL",
+    photo2:          "Photo 2 URL"
   },
 
   // Must match the headers in your schedule sheet exactly (spacing/case are forgiven).
@@ -216,17 +281,46 @@ const CONFIG = {
     start: "Start Time",
     end:   "End Time",
     open:  "Currently Open"
+  },
+
+  // Must match the headers in your reviews sheet exactly (spacing/case are forgiven).
+  reviewColumns: {
+    id:       "Trainer ID",
+    reviewer: "Reviewer First Name",
+    rating:   "Rating",
+    text:     "Testimonial",
+    date:     "Date"
   }
 };
 
 /* ============================ LOGIC ============================ */
 const C = CONFIG.columns;
 const SC = CONFIG.scheduleColumns;
+const RC = CONFIG.reviewColumns;
 const DAY_ORDER = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 let ALL = [];
 let SCHEDULE = {}; // trainerId -> [{day, start, end}], open slots only
+let REVIEWS = {};  // trainerId -> [{reviewer, rating, text, date}]
 let filterArea = "__all";
 let filterSpec = "__all";
+let filterFavoritesOnly = false;
+
+/* ---- Favorites, saved locally in this browser only, no login needed ---- */
+const FAV_KEY = "spot_favorites";
+function loadFavorites(){
+  try{ return new Set(JSON.parse(localStorage.getItem(FAV_KEY) || "[]")); }
+  catch(e){ return new Set(); }
+}
+function saveFavorites(){
+  try{ localStorage.setItem(FAV_KEY, JSON.stringify([...FAVORITES])); }catch(e){}
+}
+let FAVORITES = loadFavorites();
+function isFavorite(id){ return FAVORITES.has(id); }
+function toggleFavorite(id){
+  if(FAVORITES.has(id)) FAVORITES.delete(id); else FAVORITES.add(id);
+  saveFavorites();
+  if(location.hash) renderProfile(currentTrainerId()); else render();
+}
 
 function parseCSV(text){
   const rows=[]; let row=[], field="", i=0, inQ=false;
@@ -300,6 +394,31 @@ function slotsList(t){
   });
 }
 
+// Card summary: which days only, not full times. Full schedule lives on the profile page.
+function daysOnly(t){
+  const slots = SCHEDULE[t.id];
+  if(!slots || !slots.length) return null;
+  const seen = [];
+  slots.forEach(s=>{ if(!seen.includes(s.day)) seen.push(s.day); });
+  return seen.map(d=>d.slice(0,3));
+}
+
+function buildReviews(rows){
+  const byId = {};
+  rows.forEach(r=>{
+    if(!r.id) return;
+    (byId[r.id] = byId[r.id] || []).push({
+      reviewer: r.reviewer, rating: Number(r.rating)||0, text: r.text, date: r.date
+    });
+  });
+  return byId;
+}
+
+function starRating(n){
+  const full = Math.max(0, Math.min(5, Math.round(n)));
+  return "★".repeat(full) + "☆".repeat(5-full);
+}
+
 function splitList(s){return (s||"").split(",").map(x=>x.trim()).filter(Boolean);}
 function fmtRs(v){
   const n = Number(String(v).replace(/[^0-9.]/g,""));
@@ -340,6 +459,7 @@ function buildFilters(){
 function matches(t){
   if(filterArea!=="__all" && !splitList(t.locality).includes(filterArea)) return false;
   if(filterSpec!=="__all" && !splitList(t.specializations).includes(filterSpec)) return false;
+  if(filterFavoritesOnly && !isFavorite(t.id)) return false;
   return true;
 }
 
@@ -348,26 +468,42 @@ function ctaHref(t){
   return `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(msg)}`;
 }
 
-function cardHTML(t){
+function avatarHTML(t, size){
   const initial = esc((t.name||"?").trim().charAt(0).toUpperCase());
+  if(t.photo1){
+    return `<img class="avatar-photo" src="${esc(t.photo1)}" alt="" width="${size}" height="${size}" loading="lazy">`;
+  }
+  const fontSize = Math.round(size*0.42);
+  return `<div class="avatar" style="background:${avatarColor(t.name)}; width:${size}px; height:${size}px; flex-basis:${size}px; font-size:${fontSize}px" aria-hidden="true">${initial}</div>`;
+}
+
+function favBtnHTML(t){
+  const on = isFavorite(t.id);
+  return `<button type="button" class="favbtn" data-id="${esc(t.id)}" aria-pressed="${on}"
+    aria-label="${on?"Remove from favourites":"Save as favourite"}">${on?"♥":"♡"}</button>`;
+}
+
+function cardHTML(t){
   const tags = splitList(t.specializations).map(s=>`<span class="tag">${esc(s)}</span>`).join("");
+  const locChips = splitList(t.locality).map(s=>`<span class="loc-chip">${esc(s)}</span>`).join("");
   const sess = fmtRs(t.priceSession), month = fmtRs(t.priceMonth);
   const rows = [];
-  if(t.locality)    rows.push(`<div class="row"><dt>Area</dt><dd>${esc(splitList(t.locality).join(", "))}</dd></div>`);
   if(t.delivery)    rows.push(`<div class="row"><dt>Where</dt><dd>${esc(splitList(t.delivery).join(", "))}</dd></div>`);
-  const slots = slotsList(t);
-  if(slots)              rows.push(`<div class="row row-slots"><dt>Available</dt><dd><ul class="slotlist">${slots.map(s=>`<li>${esc(s)}</li>`).join("")}</ul></dd></div>`);
+  const days = daysOnly(t);
+  if(days)               rows.push(`<div class="row"><dt>Available</dt><dd>${esc(days.join(", "))}</dd></div>`);
   else if(t.openSlots)   rows.push(`<div class="row"><dt>Open slots</dt><dd>${esc(t.openSlots)}</dd></div>`);
   if(t.certs)       rows.push(`<div class="row"><dt>Certified</dt><dd>${esc(t.certs)}</dd></div>`);
   const priceBlock = sess
     ? `<div class="price"><span class="amt">${sess}</span><span class="per">per session</span>${month?`<span class="month">${month} / month</span>`:""}</div>`
     : (month?`<div class="price"><span class="amt">${month}</span><span class="per">per month</span></div>`:"");
   const yrs = t.years ? `<p class="years">${esc(t.years)} yrs experience</p>` : "";
-  return `<article class="card">
+  return `<article class="card" data-id="${esc(t.id)}">
+    ${favBtnHTML(t)}
     <div class="card-top">
-      <div class="avatar" style="background:${avatarColor(t.name)}" aria-hidden="true">${initial}</div>
+      ${avatarHTML(t, 54)}
       <div><h3 class="name">${esc(t.name)}</h3>${yrs}</div>
     </div>
+    ${locChips?`<div class="loc-chips">${locChips}</div>`:""}
     ${tags?`<div class="tags">${tags}</div>`:""}
     <dl class="meta">${rows.join("")}</dl>
     ${priceBlock}
@@ -381,7 +517,11 @@ function render(){
   document.getElementById("count").textContent =
     list.length ? `${list.length} trainer${list.length>1?"s":""}` : "";
   if(!list.length){
-    grid.innerHTML = ALL.length
+    grid.innerHTML = filterFavoritesOnly
+      ? `<div class="state" style="grid-column:1/-1">
+          <h2>No favourites yet</h2>
+          <p>Tap the heart on a trainer's card to save her here.</p></div>`
+      : ALL.length
       ? `<div class="state" style="grid-column:1/-1">
           <h2>No trainers match yet</h2>
           <p>Try another area or clear the focus filter. We are adding trainers every week.</p></div>`
@@ -391,6 +531,88 @@ function render(){
     return;
   }
   grid.innerHTML = list.map(cardHTML).join("");
+}
+
+/* ---- Profile page and hash-based routing ---- */
+function currentTrainerId(){
+  const m = location.hash.match(/^#trainer=(.+)$/);
+  return m ? decodeURIComponent(m[1]) : null;
+}
+
+function profileHTML(t){
+  const photos = [t.photo1, t.photo2].filter(Boolean)
+    .map(p=>`<img src="${esc(p)}" alt="">`).join("");
+  const tags = splitList(t.specializations).map(s=>`<span class="tag">${esc(s)}</span>`).join("");
+  const locChips = splitList(t.locality).map(s=>`<span class="loc-chip">${esc(s)}</span>`).join("");
+  const sess = fmtRs(t.priceSession), month = fmtRs(t.priceMonth);
+  const rows = [];
+  if(t.delivery) rows.push(`<div class="row"><dt>Where</dt><dd>${esc(splitList(t.delivery).join(", "))}</dd></div>`);
+  const slots = slotsList(t);
+  if(slots)              rows.push(`<div class="row"><dt>Available</dt><dd><ul class="slotlist">${slots.map(s=>`<li>${esc(s)}</li>`).join("")}</ul></dd></div>`);
+  else if(t.openSlots)   rows.push(`<div class="row"><dt>Open slots</dt><dd>${esc(t.openSlots)}</dd></div>`);
+  if(t.certs) rows.push(`<div class="row"><dt>Certified</dt><dd>${esc(t.certs)}</dd></div>`);
+  const priceBlock = sess
+    ? `<div class="price"><span class="amt">${sess}</span><span class="per">per session</span>${month?`<span class="month">${month} / month</span>`:""}</div>`
+    : (month?`<div class="price"><span class="amt">${month}</span><span class="per">per month</span></div>`:"");
+  const yrs = t.years ? `<p class="years">${esc(t.years)} yrs experience</p>` : "";
+
+  const revs = REVIEWS[t.id] || [];
+  const reviewsBlock = revs.length ? `<section class="reviews">
+    <h2>What clients say</h2>
+    ${revs.map(r=>`<div class="review">
+      <div class="review-head">
+        <span class="review-name">${esc(r.reviewer||"A client")}</span>
+        <span class="review-date">${esc(r.date)}</span>
+      </div>
+      <div class="review-stars" aria-label="${r.rating} out of 5">${starRating(r.rating)}</div>
+      <p class="review-text">${esc(r.text)}</p>
+    </div>`).join("")}
+  </section>` : "";
+
+  return `<button type="button" class="back" id="backBtn">&larr; Back to all trainers</button>
+    <div class="profile-top">
+      ${photos?`<div class="profile-photos">${photos}</div>`:avatarHTML(t,96)}
+      <div class="profile-info">
+        <h1 class="name">${esc(t.name)}</h1>
+        ${yrs}
+        ${locChips?`<div class="loc-chips">${locChips}</div>`:""}
+        ${tags?`<div class="tags">${tags}</div>`:""}
+        ${favBtnHTML(t)}
+      </div>
+    </div>
+    <div class="profile-body">
+      <dl class="meta">${rows.join("")}</dl>
+      ${priceBlock}
+      <a class="cta profile-cta" href="${ctaHref(t)}" target="_blank" rel="noopener">Request an intro</a>
+    </div>
+    ${reviewsBlock}`;
+}
+
+function renderProfile(id){
+  const t = ALL.find(x=>x.id===id);
+  const browseView = document.getElementById("browseView");
+  const profileView = document.getElementById("profileView");
+  if(!t){
+    profileView.innerHTML = `<button type="button" class="back" id="backBtn">&larr; Back to all trainers</button>
+      <div class="state"><h2>Trainer not found</h2><p>She may no longer be listed.</p></div>`;
+  }else{
+    profileView.innerHTML = profileHTML(t);
+    document.title = t.name + " — " + CONFIG.brandName;
+  }
+  browseView.hidden = true;
+  profileView.hidden = false;
+  window.scrollTo(0,0);
+}
+
+function showBrowse(){
+  document.getElementById("browseView").hidden = false;
+  document.getElementById("profileView").hidden = true;
+  document.title = CONFIG.brandName + " — find a trainer at your society gym";
+}
+
+function routeFromHash(){
+  const id = currentTrainerId();
+  if(id) renderProfile(id); else showBrowse();
 }
 
 function showNote(msg){
@@ -430,8 +652,33 @@ async function fetchCSV(url, columnMap, retries=2){
   throw lastErr;
 }
 
+function bindEvents(){
+  // Card clicks (navigate to profile) and favourite toggles, via delegation
+  // so re-rendering the grid never loses these bindings.
+  function handleCardClick(e){
+    const favBtn = e.target.closest(".favbtn");
+    if(favBtn){ e.preventDefault(); e.stopPropagation(); toggleFavorite(favBtn.dataset.id); return; }
+    if(e.target.closest(".cta") || e.target.closest("a")) return; // let real links work
+    if(e.target.closest("#backBtn")){ history.pushState(null,"",location.pathname+location.search); showBrowse(); return; }
+    const card = e.target.closest(".card");
+    if(card) location.hash = "trainer=" + encodeURIComponent(card.dataset.id);
+  }
+  document.getElementById("grid").addEventListener("click", handleCardClick);
+  document.getElementById("profileView").addEventListener("click", handleCardClick);
+
+  document.getElementById("favToggle").addEventListener("click", ()=>{
+    filterFavoritesOnly = !filterFavoritesOnly;
+    document.getElementById("favToggle").setAttribute("aria-pressed", filterFavoritesOnly);
+    document.getElementById("favToggle").textContent = (filterFavoritesOnly?"♥":"♡") + " Favourites";
+    render();
+  });
+
+  window.addEventListener("hashchange", routeFromHash);
+}
+
 async function init(){
   applyBranding();
+  bindEvents();
   if(!CONFIG.sheetCsvUrl){
     start([]);
     return;
@@ -439,19 +686,25 @@ async function init(){
   document.getElementById("grid").innerHTML =
     `<div class="state" style="grid-column:1/-1"><p>Loading trainers…</p></div>`;
 
-  // Schedule is a nice-to-have: fetch it alongside, but never let it block
-  // or fail the main trainer list if it is unset or unreachable.
+  // Schedule and reviews are nice-to-haves: fetch alongside, but never let
+  // either block or fail the main trainer list if unset or unreachable.
   const schedulePromise = CONFIG.scheduleCsvUrl
     ? fetchCSV(CONFIG.scheduleCsvUrl, SC).catch(()=>[])
     : Promise.resolve([]);
+  const reviewsPromise = CONFIG.reviewsCsvUrl
+    ? fetchCSV(CONFIG.reviewsCsvUrl, RC).catch(()=>[])
+    : Promise.resolve([]);
 
   try{
-    const [objs, scheduleRows] = await Promise.all([
+    const [objs, scheduleRows, reviewRows] = await Promise.all([
       fetchCSV(CONFIG.sheetCsvUrl, C),
-      schedulePromise
+      schedulePromise,
+      reviewsPromise
     ]);
     SCHEDULE = buildSchedule(scheduleRows);
+    REVIEWS = buildReviews(reviewRows);
     start(objs);
+    routeFromHash();
   }catch(e){
     showNote("Could not load the trainer list right now. Please check back shortly.");
     start([]);

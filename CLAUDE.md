@@ -9,14 +9,17 @@ Pre-launch demand test, run concierge. No automation. Google Forms, Sheets and D
 
 ## Stack
 - Static site, single file: `site/index.html` (vanilla HTML, CSS and JS, no build step). `site/` is the only folder ever published; `docs/`, `forms/` and `data/` never get deployed and must stay out of any hosting publish directory.
-- Data source: a completely separate Google Sheet, "Spot — Public Trainer Feed," with no formula link to the operating workbook (which holds `Trainer_Master` and everything else, kept live as a Google Sheet, and kept entirely offline, not in this repo in any form). The public feed is hand-maintained with only public-safe columns for Active trainers, published to the web as CSV. Never publish anything from the operating workbook itself, it holds phone numbers, full names and internal notes. See `docs/SPEC.md`.
+- Data source: up to three completely separate Google Sheets, none with a formula link to the operating workbook (which holds `Trainer_Master` and everything else, kept live as a Google Sheet, and kept entirely offline, not in this repo in any form). The public feed (required) is hand-maintained with only public-safe columns for Active trainers. The schedule and reviews feeds (both optional) add real time slots and testimonials. All published to the web as CSV. Never publish anything from the operating workbook itself, it holds phone numbers, full names and internal notes. See `docs/SPEC.md`.
+- Trainer profile page: not a separate HTML file, a client-side detail view toggled by a `#trainer=ID` URL hash within the same `site/index.html`, since trainer data is dynamic from a sheet and there is no build step to generate one page per trainer.
 - Hosting: a GitHub repo connected to Netlify, publish directory `site` (see `netlify.toml`). Push to deploy. GitHub Pages is not used here since its subfolder option is fixed to `/docs`, which this repo already uses for project docs.
 - Fonts load from Google Fonts. No other dependencies.
 
 ## Hard rules, do not break
-- Never expose a trainer's phone number, full name, or ID document in any client-side file, in the page, or in its source. Public data is display name only, plus specialization, society, training format, certifications, years, price, and either an open-slots count or actual available days/times if the optional schedule feed has rows for her (see `docs/SPEC.md`).
+- Never expose a trainer's phone number, full name, or ID document in any client-side file, in the page, or in its source. Public data is display name only, plus specialization, locality, training format, certifications, years, price, up to two already-watermarked photos, and either an open-slots count or actual available days/times if the optional schedule feed has rows for her (see `docs/SPEC.md`).
 - The "Request an intro" button messages the founder's WhatsApp (CONFIG.whatsappNumber), never the trainer. The founder confirms payment before any contact is shared.
 - A trainer appears on the page only when her Status is Active.
+- Favourites are saved to the browser's local storage only. No login, no server, no per-user data collection anywhere in this file. If a login system is ever added, that is a strategic decision, raise it in chat first, do not add it quietly.
+- Reviews only ever render on a trainer's profile page, never on the card.
 - Categories in scope: general women's fitness and PCOS-friendly training only. Do not add prenatal, postnatal, rehab or post-injury content or fields (deferred for clinical-risk reasons). Refer to PCOS as "experienced with PCOS-friendly training," never as treating or managing a condition.
 - Keep a plain disclaimer on the page: an introduction service, not a medical provider.
 - Writing style everywhere (page copy, docs, commit messages): no em dashes or en dashes, use commas, periods or parentheses. Sentence case. Plain, active voice.
@@ -40,7 +43,7 @@ Pre-launch demand test, run concierge. No automation. Google Forms, Sheets and D
 
 ## Run and deploy
 - Preview: open `site/index.html` in a browser. With no sheet URL set, it shows an empty "no trainers listed yet" state, never placeholder data.
-- Go live: create the separate public feed sheet (see `docs/SPEC.md`), publish it as CSV, paste the URL into CONFIG.sheetCsvUrl, set CONFIG.whatsappNumber, commit and push. Netlify redeploys from the `site` publish directory only.
+- Go live: create the separate public feed sheet (see `docs/SPEC.md`), publish it as CSV, paste the URL into CONFIG.sheetCsvUrl, set CONFIG.whatsappNumber, commit and push. Netlify redeploys from the `site` publish directory only. The schedule and reviews feeds (CONFIG.scheduleCsvUrl, CONFIG.reviewsCsvUrl) are optional, add them any time.
 - Ongoing: the public feed sheet has no formula link to `Trainer_Master`, so every trainer change (going Active, Paused, a price or slot update) needs a matching hand edit in both files. See `docs/SPEC.md`'s "Keeping it in sync" note.
 
 ## How to work here
