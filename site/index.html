@@ -113,20 +113,20 @@
   .favtoggle[aria-pressed="true"]{background:var(--signal-tint); color:var(--signal-deep); border-color:var(--signal-tint)}
 
   .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin:24px 0 64px}
-  .card{background:var(--card); border:1px solid var(--line); border-radius:12px; position:relative;
+  .card{background:var(--card); border:1px solid var(--line); border-radius:12px;
     padding:22px; display:flex; flex-direction:column; transition:border-color .15s ease; cursor:pointer}
   .card:hover{border-color:var(--ink)}
-  .favbtn{position:absolute; top:14px; right:14px; width:34px; height:34px; border-radius:50%;
+  .favbtn{flex:0 0 auto; width:34px; height:34px; border-radius:50%;
     border:1px solid var(--line); background:var(--card); color:#C0392B; font-size:17px; line-height:1;
-    cursor:pointer; display:grid; place-items:center; z-index:1}
+    cursor:pointer; display:grid; place-items:center}
   .favbtn:hover{border-color:#C0392B}
   .card-top{display:flex; align-items:center; gap:14px; margin-bottom:16px}
+  .card-top .id-block{display:flex; align-items:center; gap:14px; flex:1; min-width:0}
   .avatar{width:54px;height:54px;flex:0 0 54px;border-radius:50%;display:grid;place-items:center;
     color:var(--paper);font-family:var(--display);font-weight:700;font-size:23px}
   .avatar-photo{width:54px;height:54px;flex:0 0 54px;border-radius:50%;object-fit:cover;background:var(--sand)}
   .name{font-family:var(--display); font-weight:700; font-size:22px; margin:0; line-height:1.08; letter-spacing:-.01em}
   .years{margin:3px 0 0; font-size:13px; color:var(--muted)}
-  .loc-chips{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px}
   .loc-chip{font-size:12.5px; background:var(--sand); color:var(--ink); border:1px solid var(--line);
     border-radius:999px; padding:3px 10px}
   .tags{display:flex; flex-wrap:wrap; gap:7px; margin-bottom:18px}
@@ -135,9 +135,13 @@
   .meta .row{display:grid; grid-template-columns:80px 1fr; gap:10px; align-items:start}
   .meta dt{font-size:13px; color:var(--muted); padding-top:1px}
   .meta dd{margin:0; font-size:14.5px; color:var(--ink)}
+  .meta dd.chiprow{display:flex; flex-wrap:wrap; gap:6px}
   .slotlist{list-style:none; margin:0; padding:0 4px 0 0; display:flex; flex-direction:column;
     gap:5px; max-height:92px; overflow-y:auto}
   .slotlist li{font-size:14px; line-height:1.3}
+  .viewlink{display:inline-flex; align-items:center; gap:4px; font-size:13.5px; font-weight:600;
+    color:var(--signal-deep); margin:0 0 16px; text-decoration:none}
+  .card:hover .viewlink{text-decoration:underline}
   .price{display:flex; align-items:baseline; gap:7px; margin-top:auto; padding-top:16px; border-top:1px solid var(--line)}
   .price .amt{font-family:var(--display); font-weight:700; font-size:23px; color:var(--ink)}
   .price .per{font-size:13px; color:var(--muted)}
@@ -155,7 +159,7 @@
     font-family:var(--sans); padding:0}
   .back:hover{text-decoration:underline}
   .profile-top{display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start; margin-bottom:8px}
-  .profile-info .favbtn{position:static; margin-top:14px}
+  .profile-name-row{display:flex; align-items:center; gap:12px}
   .profile-photos{display:flex; gap:10px; flex:0 0 auto}
   .profile-photos img{width:140px; height:140px; border-radius:12px; object-fit:cover; background:var(--sand)}
   .profile-info{flex:1; min-width:240px}
@@ -488,9 +492,10 @@ function cardHTML(t){
   const locChips = splitList(t.locality).map(s=>`<span class="loc-chip">${esc(s)}</span>`).join("");
   const sess = fmtRs(t.priceSession), month = fmtRs(t.priceMonth);
   const rows = [];
+  if(locChips)      rows.push(`<div class="row"><dt>Locality</dt><dd class="chiprow">${locChips}</dd></div>`);
   if(t.delivery)    rows.push(`<div class="row"><dt>Where</dt><dd>${esc(splitList(t.delivery).join(", "))}</dd></div>`);
   const days = daysOnly(t);
-  if(days)               rows.push(`<div class="row"><dt>Available</dt><dd>${esc(days.join(", "))}</dd></div>`);
+  if(days)               rows.push(`<div class="row"><dt>Available On</dt><dd>${esc(days.join(", "))}</dd></div>`);
   else if(t.openSlots)   rows.push(`<div class="row"><dt>Open slots</dt><dd>${esc(t.openSlots)}</dd></div>`);
   if(t.certs)       rows.push(`<div class="row"><dt>Certified</dt><dd>${esc(t.certs)}</dd></div>`);
   const priceBlock = sess
@@ -498,14 +503,16 @@ function cardHTML(t){
     : (month?`<div class="price"><span class="amt">${month}</span><span class="per">per month</span></div>`:"");
   const yrs = t.years ? `<p class="years">${esc(t.years)} yrs experience</p>` : "";
   return `<article class="card" data-id="${esc(t.id)}">
-    ${favBtnHTML(t)}
     <div class="card-top">
-      ${avatarHTML(t, 54)}
-      <div><h3 class="name">${esc(t.name)}</h3>${yrs}</div>
+      <div class="id-block">
+        ${avatarHTML(t, 54)}
+        <div><h3 class="name">${esc(t.name)}</h3>${yrs}</div>
+      </div>
+      ${favBtnHTML(t)}
     </div>
-    ${locChips?`<div class="loc-chips">${locChips}</div>`:""}
     ${tags?`<div class="tags">${tags}</div>`:""}
     <dl class="meta">${rows.join("")}</dl>
+    <a class="viewlink" href="#trainer=${encodeURIComponent(t.id)}">View full profile &rarr;</a>
     ${priceBlock}
     <a class="cta" href="${ctaHref(t)}" target="_blank" rel="noopener">Request an intro</a>
   </article>`;
@@ -546,9 +553,10 @@ function profileHTML(t){
   const locChips = splitList(t.locality).map(s=>`<span class="loc-chip">${esc(s)}</span>`).join("");
   const sess = fmtRs(t.priceSession), month = fmtRs(t.priceMonth);
   const rows = [];
+  if(locChips)    rows.push(`<div class="row"><dt>Locality</dt><dd class="chiprow">${locChips}</dd></div>`);
   if(t.delivery) rows.push(`<div class="row"><dt>Where</dt><dd>${esc(splitList(t.delivery).join(", "))}</dd></div>`);
   const slots = slotsList(t);
-  if(slots)              rows.push(`<div class="row"><dt>Available</dt><dd><ul class="slotlist">${slots.map(s=>`<li>${esc(s)}</li>`).join("")}</ul></dd></div>`);
+  if(slots)              rows.push(`<div class="row"><dt>Available On</dt><dd><ul class="slotlist">${slots.map(s=>`<li>${esc(s)}</li>`).join("")}</ul></dd></div>`);
   else if(t.openSlots)   rows.push(`<div class="row"><dt>Open slots</dt><dd>${esc(t.openSlots)}</dd></div>`);
   if(t.certs) rows.push(`<div class="row"><dt>Certified</dt><dd>${esc(t.certs)}</dd></div>`);
   const priceBlock = sess
@@ -573,11 +581,12 @@ function profileHTML(t){
     <div class="profile-top">
       ${photos?`<div class="profile-photos">${photos}</div>`:avatarHTML(t,96)}
       <div class="profile-info">
-        <h1 class="name">${esc(t.name)}</h1>
+        <div class="profile-name-row">
+          <h1 class="name">${esc(t.name)}</h1>
+          ${favBtnHTML(t)}
+        </div>
         ${yrs}
-        ${locChips?`<div class="loc-chips">${locChips}</div>`:""}
         ${tags?`<div class="tags">${tags}</div>`:""}
-        ${favBtnHTML(t)}
       </div>
     </div>
     <div class="profile-body">
