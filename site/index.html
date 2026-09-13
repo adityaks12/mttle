@@ -127,6 +127,7 @@
   .avatar-photo{width:54px;height:54px;flex:0 0 54px;border-radius:50%;object-fit:cover;background:var(--sand)}
   .name{font-family:var(--display); font-weight:700; font-size:22px; margin:0; line-height:1.08; letter-spacing:-.01em}
   .years{margin:3px 0 0; font-size:13px; color:var(--muted)}
+  .revcount{margin:2px 0 0; font-size:12.5px; color:var(--signal-deep); font-weight:500}
   .loc-chip{font-size:12.5px; background:var(--sand); color:var(--ink); border:1px solid var(--line);
     border-radius:999px; padding:3px 10px}
   .tags{display:flex; flex-wrap:wrap; gap:7px; margin-bottom:18px}
@@ -256,7 +257,7 @@ const CONFIG = {
   // Paste the published-to-web CSV URL for the separate reviews sheet here.
   // One row per review: Trainer ID, Reviewer First Name, Rating, Testimonial, Date.
   // Leave "" and the profile page just shows no reviews section.
-  reviewsCsvUrl: "",
+  reviewsCsvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4_bNX62ZDofaV63ggNg_4ur-X7f98wQm8fsRSBqX-4n4Wc1qn4ahM69rMOWT_4Q/pub?output=csv",
 
   // A trainer is listed only when her Status is one of these.
   showStatuses: ["Active"],
@@ -425,12 +426,6 @@ function starRating(n){
 
 function splitList(s){return (s||"").split(",").map(x=>x.trim()).filter(Boolean);}
 
-// Society gym is the assumed default for every trainer, so it's not worth a row.
-// Only show "Where" when she offers something beyond that (e.g. also home visits).
-function extraDelivery(t){
-  const extra = splitList(t.delivery).filter(v=>norm(v)!=="society gym");
-  return extra.length ? extra : null;
-}
 function fmtRs(v){
   const n = Number(String(v).replace(/[^0-9.]/g,""));
   if(!v || isNaN(n) || n===0) return null;
@@ -488,6 +483,11 @@ function avatarHTML(t, size){
   return `<div class="avatar" style="background:${avatarColor(t.name)}; width:${size}px; height:${size}px; flex-basis:${size}px; font-size:${fontSize}px" aria-hidden="true">${initial}</div>`;
 }
 
+function reviewCountHTML(t){
+  const n = (REVIEWS[t.id]||[]).length;
+  return n ? `<p class="revcount">${n} review${n>1?"s":""}</p>` : "";
+}
+
 function favBtnHTML(t){
   const on = isFavorite(t.id);
   return `<button type="button" class="favbtn" data-id="${esc(t.id)}" aria-pressed="${on}"
@@ -500,8 +500,6 @@ function cardHTML(t){
   const sess = fmtRs(t.priceSession), month = fmtRs(t.priceMonth);
   const rows = [];
   if(locChips)      rows.push(`<div class="row"><dt>Locality</dt><dd class="chiprow">${locChips}</dd></div>`);
-  const extraDeliv = extraDelivery(t);
-  if(extraDeliv)    rows.push(`<div class="row"><dt>Also at</dt><dd>${esc(extraDeliv.join(", "))}</dd></div>`);
   const days = daysOnly(t);
   if(days)               rows.push(`<div class="row"><dt>Available On</dt><dd>${esc(days.join(", "))}</dd></div>`);
   else if(t.openSlots)   rows.push(`<div class="row"><dt>Open slots</dt><dd>${esc(t.openSlots)}</dd></div>`);
@@ -514,7 +512,7 @@ function cardHTML(t){
     <div class="card-top">
       <div class="id-block">
         ${avatarHTML(t, 54)}
-        <div><h3 class="name">${esc(t.name)}</h3>${yrs}</div>
+        <div><h3 class="name">${esc(t.name)}</h3>${yrs}${reviewCountHTML(t)}</div>
       </div>
       ${favBtnHTML(t)}
     </div>
@@ -562,8 +560,6 @@ function profileHTML(t){
   const sess = fmtRs(t.priceSession), month = fmtRs(t.priceMonth);
   const rows = [];
   if(locChips)    rows.push(`<div class="row"><dt>Locality</dt><dd class="chiprow">${locChips}</dd></div>`);
-  const extraDeliv = extraDelivery(t);
-  if(extraDeliv)  rows.push(`<div class="row"><dt>Also at</dt><dd>${esc(extraDeliv.join(", "))}</dd></div>`);
   const slots = slotsList(t);
   if(slots)              rows.push(`<div class="row"><dt>Available On</dt><dd><ul class="slotlist">${slots.map(s=>`<li>${esc(s)}</li>`).join("")}</ul></dd></div>`);
   else if(t.openSlots)   rows.push(`<div class="row"><dt>Open slots</dt><dd>${esc(t.openSlots)}</dd></div>`);
