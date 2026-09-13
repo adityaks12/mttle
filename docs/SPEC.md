@@ -29,20 +29,35 @@ The page's own `showStatuses` check (below) still filters to Active as a second,
 
 Multi-value cells (Societies Served, Specialisations) hold comma-separated values inside one cell. Google exports these as quoted CSV fields. The page has a CSV parser that handles quoted commas, so do not switch to a naive split on comma.
 
+## The schedule feed, optional, a third separate file
+A raw open-slots count does not tell a customer whether a trainer is free when she actually wants a session. A third Google Sheet, for example "Spot — Trainer Schedule," fixes that: one tab, headers in row 1:
+
+`Trainer ID, Day, Start Time, End Time, Currently Open`
+
+One row per trainer per recurring weekly slot (so a trainer with three weekly windows has three rows). `Day` is a full weekday name (Monday..Sunday). `Currently Open` is Yes or No, so a slot can be temporarily marked taken without deleting the row. No PII here either, `Trainer ID` is the only join key, matched against the public feed's `Trainer ID`.
+
+Publish this tab the same way, CSV, and put its URL in `site/index.html`'s CONFIG.scheduleCsvUrl. This is additive, not required: a trainer with rows in this feed shows her actual open days and times on her card (e.g. "Mon 6:00 AM–8:00 AM, Wed 6:00 AM–8:00 AM"), sorted Monday to Sunday and filtered to `Currently Open = Yes` only; a trainer with no rows here falls back to the public feed's `Current Open Slots` number, so leaving CONFIG.scheduleCsvUrl blank, or a trainer having no schedule rows, degrades gracefully rather than breaking anything.
+
+Keeping it in sync is the same manual discipline as the public feed: update this file's rows whenever a trainer's actual availability changes, there is no formula linking it to anything either.
+
 ## Browse page (`site/index.html`)
 A single self-contained file. The config block sits at the top of the script:
 - brandName, headline, tagline
 - sheetCsvUrl: the published CSV URL for the separate public feed file, never anything from the `Trainer_Master` workbook. Blank shows an empty "no trainers listed yet" state, there is no placeholder data anywhere in this file.
+- scheduleCsvUrl: the published CSV URL for the separate schedule feed file, optional. Blank, or a fetch failure, just means every card falls back to the open-slots count, it never blocks or breaks the main trainer list.
 - whatsappNumber: the founder's business number in international format. The intro button messages this number.
 - showStatuses: ["Active"]
 - columns: a map from field to the exact public feed header. Matching is trimmed and case-insensitive.
+- scheduleColumns: same idea, for the schedule feed's headers.
 
 Behaviour:
-- Fetch the CSV, parse it, map by header name, keep only showStatuses rows, and expose only public fields.
+- Fetch both CSVs in parallel. The schedule fetch is wrapped so its failure never surfaces as an error or blocks the trainer list, since it is a nice-to-have.
+- Parse each, map by header name, keep only showStatuses rows from the public feed, and expose only public fields.
+- Build a trainer-ID keyed schedule map from the schedule feed, `Currently Open = Yes` rows only, sorted Monday to Sunday then by start time.
 - Filters: society (a dropdown built from the data) and focus or specialization (chips built from the data).
-- Card: first-name avatar, name, years, specialization tags, trains-at, training format, open slots, certified, price, and a "Request an intro" button.
+- Card: first-name avatar, name, years, specialization tags, trains-at, training format, actual available days/times if the schedule feed has rows for her, else the open-slots count, certified, price, and a "Request an intro" button.
 - The intro button opens wa.me to whatsappNumber with the trainer's display name and ID prefilled. It never contains the trainer's number.
-- States: loading, empty with no sheet configured ("no trainers listed yet"), empty because the feed genuinely has zero Active rows (same message), empty because filters matched nothing (a different, filter-specific message), and error (a note, then the same empty state, never placeholder data).
+- States: loading, empty with no sheet configured ("no trainers listed yet"), empty because the feed genuinely has zero Active rows (same message), empty because filters matched nothing (a different, filter-specific message), and error on the main feed (a note, then the same empty state, never placeholder data). The schedule feed has no error state of its own, it just silently falls back per trainer.
 
 ## The rest of the workbook
 - `Trainer_Availability`, `Trainer_Documents`, `Trainer_Reviews`: kept separate from `Trainer_Master` so profile edits do not disturb scheduling, compliance or credibility records. The browse page does not read these; they are internal.

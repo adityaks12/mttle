@@ -28,6 +28,14 @@
   A trainer shows on the page only when her Status is Active in the PUBLIC FEED sheet.
   The two sheets are not linked, so update her row in both places, every time.
 
+  OPTIONAL: real time slots instead of a raw open-slots count.
+  Create a THIRD, separate Google Sheet, one tab, headers: Trainer ID, Day, Start Time,
+  End Time, Currently Open. One row per trainer per recurring weekly slot. Publish to
+  web as CSV same as above, paste the URL into CONFIG.scheduleCsvUrl. A trainer with
+  rows here shows her actual open days/times instead of a number; a trainer with none
+  falls back to the Current Open Slots count from the public feed, so this is additive,
+  not required.
+
   SWITCH COLOURWAY: change --signal, --signal-deep and --signal-tint in :root.
      Volt lime   : #86CB3C / #4D7C0F / #ECF6D6
      Aqua teal   : #14C7C0 / #0C8480 / #D6F4F1
@@ -168,6 +176,12 @@ const CONFIG = {
   // page will show an empty, no-trainers-yet state, never placeholder data.
   sheetCsvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRR97vFU_A9BK9VmizMB-xAbBDkI55m2SbJPhyHZDdIcRubg90NE3oDLwFkmh7ZGw/pub?gid=2005160784&single=true&output=csv",
 
+  // Paste the published-to-web CSV URL for the separate schedule sheet here.
+  // One row per trainer per day/time window: Trainer ID, Day, Start Time, End Time,
+  // Currently Open. Leave "" and cards fall back to showing the open-slots count
+  // instead of actual times.
+  scheduleCsvUrl: "",
+
   // Your business WhatsApp number in international format, digits only (e.g. 919812345678).
   // This is who the "Request an intro" button messages. Trainer numbers are never shown.
   whatsappNumber: "919812345678",
@@ -188,12 +202,24 @@ const CONFIG = {
     priceMonth:      "Typical Monthly Price",
     certs:           "Certifications",
     years:           "Years Experience"
+  },
+
+  // Must match the headers in your schedule sheet exactly (spacing/case are forgiven).
+  scheduleColumns: {
+    id:    "Trainer ID",
+    day:   "Day",
+    start: "Start Time",
+    end:   "End Time",
+    open:  "Currently Open"
   }
 };
 
 /* ============================ LOGIC ============================ */
 const C = CONFIG.columns;
+const SC = CONFIG.scheduleColumns;
+const DAY_ORDER = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 let ALL = [];
+let SCHEDULE = {}; // trainerId -> [{day, start, end}], open slots only
 let filterSociety = "__all";
 let filterSpec = "__all";
 
@@ -218,12 +244,12 @@ function parseCSV(text){
 
 function norm(s){return (s||"").trim().toLowerCase();}
 
-function rowsToObjects(rows){
+function rowsToObjects(rows, columnMap){
   if(!rows.length) return [];
   const header = rows[0].map(h=>h.trim());
   const idx = {};
-  Object.keys(C).forEach(key=>{
-    const want = norm(C[key]);
+  Object.keys(columnMap).forEach(key=>{
+    const want = norm(columnMap[key]);
     idx[key] = header.findIndex(h=>norm(h)===want);
   });
   return rows.slice(1)
@@ -233,6 +259,32 @@ function rowsToObjects(rows){
       Object.keys(idx).forEach(key=>{ o[key] = idx[key]>=0 ? (r[idx[key]]||"").trim() : ""; });
       return o;
     });
+}
+
+function buildSchedule(rows){
+  const byId = {};
+  rows.forEach(r=>{
+    if(!r.id || !r.day) return;
+    if(norm(r.open) !== "yes") return; // only currently-open slots are shown
+    (byId[r.id] = byId[r.id] || []).push({day: r.day, start: r.start, end: r.end});
+  });
+  Object.values(byId).forEach(slots=>{
+    slots.sort((a,b)=>{
+      const da = DAY_ORDER.indexOf(a.day), db = DAY_ORDER.indexOf(b.day);
+      if(da !== db) return da - db;
+      return (a.start||"").localeCompare(b.start||"");
+    });
+  });
+  return byId;
+}
+
+function slotsText(t){
+  const slots = SCHEDULE[t.id];
+  if(!slots || !slots.length) return null;
+  return slots.map(s=>{
+    const day = (s.day||"").slice(0,3);
+    return s.start && s.end ? `${day} ${s.start}–${s.end}` : day;
+  }).join(", ");
 }
 
 function splitList(s){return (s||"").split(",").map(x=>x.trim()).filter(Boolean);}
@@ -290,7 +342,9 @@ function cardHTML(t){
   const rows = [];
   if(t.societies)   rows.push(`<div class="row"><dt>Trains at</dt><dd>${esc(splitList(t.societies).join(", "))}</dd></div>`);
   if(t.delivery)    rows.push(`<div class="row"><dt>Where</dt><dd>${esc(splitList(t.delivery).join(", "))}</dd></div>`);
-  if(t.openSlots)   rows.push(`<div class="row"><dt>Open slots</dt><dd>${esc(t.openSlots)}</dd></div>`);
+  const slots = slotsText(t);
+  if(slots)              rows.push(`<div class="row"><dt>Available</dt><dd>${esc(slots)}</dd></div>`);
+  else if(t.openSlots)   rows.push(`<div class="row"><dt>Open slots</dt><dd>${esc(t.openSlots)}</dd></div>`);
   if(t.certs)       rows.push(`<div class="row"><dt>Certified</dt><dd>${esc(t.certs)}</dd></div>`);
   const priceBlock = sess
     ? `<div class="price"><span class="amt">${sess}</span><span class="per">per session</span>${month?`<span class="month">${month} / month</span>`:""}</div>`
@@ -344,6 +398,13 @@ function start(list){
   render();
 }
 
+async function fetchCSV(url, columnMap){
+  const res = await fetch(url);
+  if(!res.ok) throw new Error("HTTP "+res.status);
+  const text = await res.text();
+  return rowsToObjects(parseCSV(text), columnMap);
+}
+
 async function init(){
   applyBranding();
   if(!CONFIG.sheetCsvUrl){
@@ -352,11 +413,19 @@ async function init(){
   }
   document.getElementById("grid").innerHTML =
     `<div class="state" style="grid-column:1/-1"><p>Loading trainers…</p></div>`;
+
+  // Schedule is a nice-to-have: fetch it alongside, but never let it block
+  // or fail the main trainer list if it is unset or unreachable.
+  const schedulePromise = CONFIG.scheduleCsvUrl
+    ? fetchCSV(CONFIG.scheduleCsvUrl, SC).catch(()=>[])
+    : Promise.resolve([]);
+
   try{
-    const res = await fetch(CONFIG.sheetCsvUrl);
-    if(!res.ok) throw new Error("HTTP "+res.status);
-    const text = await res.text();
-    const objs = rowsToObjects(parseCSV(text));
+    const [objs, scheduleRows] = await Promise.all([
+      fetchCSV(CONFIG.sheetCsvUrl, C),
+      schedulePromise
+    ]);
+    SCHEDULE = buildSchedule(scheduleRows);
     start(objs);
   }catch(e){
     showNote("Could not load the trainer list right now. Please check back shortly.");

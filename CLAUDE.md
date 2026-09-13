@@ -14,7 +14,7 @@ Pre-launch demand test, run concierge. No automation. Google Forms, Sheets and D
 - Fonts load from Google Fonts. No other dependencies.
 
 ## Hard rules, do not break
-- Never expose a trainer's phone number, full name, or ID document in any client-side file, in the page, or in its source. Public data is display name only, plus specialization, society, training format, certifications, years, open slots, and price.
+- Never expose a trainer's phone number, full name, or ID document in any client-side file, in the page, or in its source. Public data is display name only, plus specialization, society, training format, certifications, years, price, and either an open-slots count or actual available days/times if the optional schedule feed has rows for her (see `docs/SPEC.md`).
 - The "Request an intro" button messages the founder's WhatsApp (CONFIG.whatsappNumber), never the trainer. The founder confirms payment before any contact is shared.
 - A trainer appears on the page only when her Status is Active.
 - Categories in scope: general women's fitness and PCOS-friendly training only. Do not add prenatal, postnatal, rehab or post-injury content or fields (deferred for clinical-risk reasons). Refer to PCOS as "experienced with PCOS-friendly training," never as treating or managing a condition.
