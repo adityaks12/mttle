@@ -3,7 +3,7 @@
 ## Reference workbook, the operating backend
 The operating backend is a live Google Sheet: a multi-tab workbook covering trainer profiles, availability, documents, reviews, societies, customers, requests, introductions, payments, followups, form question banks, controlled lists, an onboarding checklist and acquisition experiments. This is the source of truth for how the concierge operation runs, and it is edited in a browser at its own Google Sheets URL, never as a local file.
 
-`reference/PT_Marketplace_Operating_Repository.xlsx`, sitting in this repo, is a downloaded snapshot of that live sheet, kept only for documentation so the schema is visible alongside the code. It is not connected to anything. Editing it does nothing to the live site, and it is never re-uploaded anywhere. If the live sheet's schema changes, this snapshot goes stale until someone re-downloads it, that is expected and fine.
+The operating workbook is kept entirely offline: on the founder's own computer, and in Google Sheets. It is never copied into this repo, in any form, not even as a snapshot. This document describes its schema from memory so the code and the process stay understandable together, but if the live sheet's schema changes, this description can go stale, there is no file here that would ever be regenerated to catch it up.
 
 `Trainer_Master` itself is never published to the web and never shared beyond you. It holds phone numbers, full legal names, consent flags and internal notes. "Publish to web" has no per-column redaction, so publishing `Trainer_Master` directly would ship every private field to anyone who finds the CSV URL, and that URL sits in plain text in `site/index.html`'s source on the live site. It is also a poor idea to publish any tab from the same file `Trainer_Master` lives in at all, one wrong sharing setting on that file would then risk the whole business workbook, not just one tab. Instead, the browse page reads from a second, entirely separate Google Sheets file, with no formula link and no shared ownership between the two.
 
@@ -32,7 +32,7 @@ Multi-value cells (Societies Served, Specialisations) hold comma-separated value
 ## Browse page (`site/index.html`)
 A single self-contained file. The config block sits at the top of the script:
 - brandName, headline, tagline
-- sheetCsvUrl: the published CSV URL for the separate public feed file, never anything from the `Trainer_Master` workbook. Blank shows the built-in sample roster.
+- sheetCsvUrl: the published CSV URL for the separate public feed file, never anything from the `Trainer_Master` workbook. Blank shows an empty "no trainers listed yet" state, there is no placeholder data anywhere in this file.
 - whatsappNumber: the founder's business number in international format. The intro button messages this number.
 - showStatuses: ["Active"]
 - columns: a map from field to the exact public feed header. Matching is trimmed and case-insensitive.
@@ -42,7 +42,7 @@ Behaviour:
 - Filters: society (a dropdown built from the data) and focus or specialization (chips built from the data).
 - Card: first-name avatar, name, years, specialization tags, trains-at, training format, open slots, certified, price, and a "Request an intro" button.
 - The intro button opens wa.me to whatsappNumber with the trainer's display name and ID prefilled. It never contains the trainer's number.
-- States: loading, empty (friendly and actionable), error (falls back to sample data with a note), and sample or preview (a banner when no sheet URL is set).
+- States: loading, empty with no sheet configured ("no trainers listed yet"), empty because the feed genuinely has zero Active rows (same message), empty because filters matched nothing (a different, filter-specific message), and error (a note, then the same empty state, never placeholder data).
 
 ## The rest of the workbook
 - `Trainer_Availability`, `Trainer_Documents`, `Trainer_Reviews`: kept separate from `Trainer_Master` so profile edits do not disturb scheduling, compliance or credibility records. The browse page does not read these; they are internal.

@@ -18,7 +18,8 @@
      File > Share > Publish to web > Comma-separated values (.csv) > Publish.
      Copy the URL it gives you. Never publish anything from the operating workbook
      itself, that is where Trainer_Master lives, with phone numbers and full names.
-  2. Paste that URL into CONFIG.sheetCsvUrl below (leave blank to preview with sample data).
+  2. Paste that URL into CONFIG.sheetCsvUrl below (leave blank and the page shows an
+     empty, no-trainers-yet state, never placeholder data).
   3. Put YOUR business WhatsApp number in CONFIG.whatsappNumber (this is who the
      "Request an intro" button messages. The trainer's number NEVER appears on this page).
   4. Change CONFIG.brandName / headline / tagline if needed, then push. Netlify deploys
@@ -162,7 +163,9 @@ const CONFIG = {
   headline: "A trainer who understands women's fitness, at your own society gym.",
   tagline: "Every trainer here is someone we have spoken to, checked references for, and onboarded in person. Browse for free. You will get her direct contact once you request an intro.",
 
-  // Paste your published-to-web CSV URL here. Leave "" to preview with sample data.
+  // Paste your published-to-web CSV URL here (the separate public feed sheet,
+  // never the operating workbook). Leave "" while it is not set up yet, the
+  // page will show an empty, no-trainers-yet state, never placeholder data.
   sheetCsvUrl: "",
 
   // Your business WhatsApp number in international format, digits only (e.g. 919812345678).
@@ -172,7 +175,7 @@ const CONFIG = {
   // A trainer is listed only when her Status is one of these.
   showStatuses: ["Active"],
 
-  // Must match the headers in your Trainer_Master tab exactly (spacing/case are forgiven).
+  // Must match the headers in your public feed sheet exactly (spacing/case are forgiven).
   columns: {
     id:              "Trainer ID",
     name:            "Display Name",
@@ -187,15 +190,6 @@ const CONFIG = {
     years:           "Years Experience"
   }
 };
-
-/* Sample roster shown only when sheetCsvUrl is blank or the fetch fails. */
-const SAMPLE = [
-  {id:"T001",name:"Priya",status:"Active",societies:"Koramangala Greens, HSR Sunrise Enclave",delivery:"Society Gym",openSlots:"3",specializations:"General fitness, PCOS-aware fitness",priceSession:"800",priceMonth:"6000",certs:"K11, ACE",years:"5"},
-  {id:"T002",name:"Anjali",status:"Active",societies:"HSR Sunrise Enclave",delivery:"Society Gym, Home",openSlots:"1",specializations:"Weight loss, General fitness",priceSession:"700",priceMonth:"5500",certs:"ACSM",years:"4"},
-  {id:"T003",name:"Meera",status:"Active",societies:"5th Block Residency, Koramangala Greens",delivery:"Society Gym",openSlots:"2",specializations:"Beginner fitness, PCOS-aware fitness",priceSession:"900",priceMonth:"7000",certs:"K11",years:"6"},
-  {id:"T004",name:"Reshma",status:"Active",societies:"Silver Oak HSR",delivery:"Society Gym",openSlots:"4",specializations:"General fitness, Beginner fitness",priceSession:"650",priceMonth:"5000",certs:"Gold's Academy",years:"3"},
-  {id:"T005",name:"Fatima",status:"Active",societies:"5th Block Residency",delivery:"Home, Society Gym",openSlots:"2",specializations:"PCOS-aware fitness, Weight loss",priceSession:"850",priceMonth:"6500",certs:"ACE, Precision Nutrition L1",years:"7"}
-];
 
 /* ============================ LOGIC ============================ */
 const C = CONFIG.columns;
@@ -320,9 +314,13 @@ function render(){
   document.getElementById("count").textContent =
     list.length ? `${list.length} trainer${list.length>1?"s":""}` : "";
   if(!list.length){
-    grid.innerHTML=`<div class="state" style="grid-column:1/-1">
-      <h2>No trainers match yet</h2>
-      <p>Try another society or clear the focus filter. We are adding trainers every week.</p></div>`;
+    grid.innerHTML = ALL.length
+      ? `<div class="state" style="grid-column:1/-1">
+          <h2>No trainers match yet</h2>
+          <p>Try another society or clear the focus filter. We are adding trainers every week.</p></div>`
+      : `<div class="state" style="grid-column:1/-1">
+          <h2>No trainers listed yet</h2>
+          <p>We are onboarding trainers now. Check back soon.</p></div>`;
     return;
   }
   grid.innerHTML = list.map(cardHTML).join("");
@@ -349,8 +347,7 @@ function start(list){
 async function init(){
   applyBranding();
   if(!CONFIG.sheetCsvUrl){
-    showNote("Preview mode: showing sample trainers. Paste your published sheet URL in the config to go live.");
-    start(SAMPLE);
+    start([]);
     return;
   }
   document.getElementById("grid").innerHTML =
@@ -360,11 +357,10 @@ async function init(){
     if(!res.ok) throw new Error("HTTP "+res.status);
     const text = await res.text();
     const objs = rowsToObjects(parseCSV(text));
-    if(!objs.length) throw new Error("no rows");
     start(objs);
   }catch(e){
-    showNote("Could not load the live sheet, showing sample data. Check that the sheet is published to the web as CSV.");
-    start(SAMPLE);
+    showNote("Could not load the trainer list right now. Please check back shortly.");
+    start([]);
   }
 }
 init();

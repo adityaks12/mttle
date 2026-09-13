@@ -1,6 +1,6 @@
 # Intro request (customer capture)
 
-Field bank lives in `reference/PT_Marketplace_Operating_Repository.xlsx`, tab `Form_Customer_Request`. This file mirrors it. The browse page's "Request an intro" button messages your WhatsApp by default, which is the simplest month-one path. If you prefer a form, build this and point responses at `Customer_Master` and `Customer_Requests`.
+Field bank lives in the operating workbook (kept offline, not in this repo), tab `Form_Customer_Request`. This file mirrors it. The browse page's "Request an intro" button messages your WhatsApp by default, which is the simplest month-one path. If you prefer a form, build this and point responses at `Customer_Master` and `Customer_Requests`.
 
 Fields:
 - Name (short text). Feeds Customer_Master.

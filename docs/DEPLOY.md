@@ -1,7 +1,7 @@
 # Deploy and manual setup
 
 ## Host the page
-The repo stays private, and only `site/` is ever allowed to reach a public host. `docs/`, `reference/` and `forms/` hold the business plan and the full trainer roster and must never sit in a hosting publish directory, even on a private repo, because the deployed site itself is public.
+The repo stays private, and only `site/` is ever allowed to reach a public host. `docs/` and `forms/` hold the business plan and must never sit in a hosting publish directory, even on a private repo, because the deployed site itself is public. The operating workbook and full trainer roster are not in this repo at all, they stay offline.
 
 Option A, Netlify (recommended, what this project uses):
 1. Push this repo to GitHub (private is fine, Netlify reads private repos with its GitHub App).
@@ -20,7 +20,7 @@ Custom domain: point spot.in at the host when you are ready (Netlify domain sett
 3. In `site/index.html`, set CONFIG.sheetCsvUrl to that URL and CONFIG.whatsappNumber to your business number.
 4. Recreate the two forms from `forms/` in Google Forms (mirrors Form_Trainer_Intake and Form_Customer_Request in the workbook). Point responses at their own Form Responses tab, then transfer to `Trainer_Master` by hand after screening, see `docs/SPEC.md`.
 5. Create an access-restricted Google Drive folder for IDs and certificates, linked from Trainer_Documents. Do not store these in the open sheet.
-6. Commit and push. Confirm the live URL shows your trainers rather than the sample banner, and that visiting `/docs/` or `/reference/` on the live URL 404s.
+6. Commit and push. Confirm the live URL shows your trainers rather than the empty state, and that visiting `/docs/` on the live URL 404s.
 7. From here on, every time a trainer goes Active, Paused or changes a public-facing detail, update her row in the public feed sheet by hand, in addition to `Trainer_Master`. The two files are not linked, see `docs/SPEC.md`'s "Keeping it in sync" note.
 
 ## Not now

@@ -1,6 +1,6 @@
 # Trainer intake form (build in Google Forms)
 
-Field bank lives in `reference/PT_Marketplace_Operating_Repository.xlsx`, tab `Form_Trainer_Intake`. This file mirrors it. Onboarding is call-based, so you can also read these off during the call and fill `Trainer_Master` directly. Group and order as below. "Customer facing" marks fields that end up visible on the browse page; everything else stays internal.
+Field bank lives in the operating workbook (kept offline, not in this repo), tab `Form_Trainer_Intake`. This file mirrors it. Onboarding is call-based, so you can also read these off during the call and fill `Trainer_Master` directly. Group and order as below. "Customer facing" marks fields that end up visible on the browse page; everything else stays internal.
 
 ## Identity
 - Full name (short text). Internal only, feeds Full Name (Internal).

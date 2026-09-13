@@ -1,3 +1,8 @@
 .DS_Store
 Thumbs.db
 *.log
+
+# Never commit spreadsheet exports, offline only
+*.xlsx
+*.xls
+reference/
