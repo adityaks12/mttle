@@ -647,10 +647,12 @@ function start(list){
   render();
 }
 
-async function fetchCSV(url, columnMap, retries=2){
-  // Google's published-CSV endpoint occasionally bounces the first request
-  // from a fresh client to a login check, then serves fine right after.
-  // A couple of quick retries rides over that instead of surfacing an error.
+async function fetchCSV(url, columnMap, retries=4){
+  // Google's published-CSV endpoint intermittently bounces a request to a
+  // login-check page instead of serving the CSV, roughly 20-30% of the time
+  // in practice, even though the sheet is genuinely public. Not a permissions
+  // problem, just an unreliable endpoint. Retries with increasing spacing
+  // ride over this instead of surfacing an error to a real visitor.
   let lastErr;
   for(let attempt=0; attempt<=retries; attempt++){
     try{
@@ -660,7 +662,7 @@ async function fetchCSV(url, columnMap, retries=2){
       return rowsToObjects(parseCSV(text), columnMap);
     }catch(e){
       lastErr = e;
-      if(attempt<retries) await new Promise(r=>setTimeout(r, 500));
+      if(attempt<retries) await new Promise(r=>setTimeout(r, 400 + attempt*300));
     }
   }
   throw lastErr;
@@ -690,15 +692,14 @@ function bindEvents(){
   window.addEventListener("hashchange", routeFromHash);
 }
 
-async function init(){
-  applyBranding();
-  bindEvents();
-  if(!CONFIG.sheetCsvUrl){
-    start([]);
-    return;
+let bgRetryCount = 0;
+const BG_RETRY_MAX = 5;
+
+async function loadData(isBackgroundRetry){
+  if(!isBackgroundRetry){
+    document.getElementById("grid").innerHTML =
+      `<div class="state" style="grid-column:1/-1"><p>Loading trainers…</p></div>`;
   }
-  document.getElementById("grid").innerHTML =
-    `<div class="state" style="grid-column:1/-1"><p>Loading trainers…</p></div>`;
 
   // Schedule and reviews are nice-to-haves: fetch alongside, but never let
   // either block or fail the main trainer list if unset or unreachable.
@@ -717,12 +718,32 @@ async function init(){
     ]);
     SCHEDULE = buildSchedule(scheduleRows);
     REVIEWS = buildReviews(reviewRows);
+    document.getElementById("noteSlot").innerHTML = ""; // clear any earlier error note
     start(objs);
     routeFromHash();
   }catch(e){
-    showNote("Could not load the trainer list right now. Please check back shortly.");
+    // Google's CSV endpoint is flaky (see fetchCSV), not usually a real outage.
+    // Keep quietly retrying in the background instead of leaving the page
+    // stuck empty until someone manually refreshes.
+    if(bgRetryCount < BG_RETRY_MAX){
+      bgRetryCount++;
+      setTimeout(()=>loadData(true), 6000);
+      showNote("Could not load the trainer list just now. Trying again automatically…");
+    }else{
+      showNote("Could not load the trainer list right now. Please check back shortly.");
+    }
     start([]);
   }
+}
+
+async function init(){
+  applyBranding();
+  bindEvents();
+  if(!CONFIG.sheetCsvUrl){
+    start([]);
+    return;
+  }
+  loadData(false);
 }
 init();
 </script>
