@@ -470,7 +470,7 @@ function matches(t){
 }
 
 function ctaHref(t){
-  const msg = `Hi ${CONFIG.brandName}, I'd like an intro to ${t.name} (${t.id}). Please share the next steps.`;
+  const msg = `Hi! I found ${t.name} (ref: ${t.id}) on ${CONFIG.brandName} and would like an intro for personal training. Could you share the next steps?`;
   return `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(msg)}`;
 }
 
