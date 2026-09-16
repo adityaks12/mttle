@@ -1,12 +1,19 @@
 /**
- * Creates the two Spot Google Forms (Trainer Intake, Customer Request) from
- * the field specs in forms/trainer-intake.md and forms/intro-request.md.
+ * Creates the two Spot Google Forms (Trainer Intake, Customer Request).
  *
- * This is a one-off scaffolding script, not the ongoing automation ruled out
- * by docs/DECISIONS.md item 12. Run it once to generate both forms instead
- * of clicking through ~25 fields by hand in the Google Forms UI. Everything
- * after that (reading responses, transferring into Trainer_Master, etc.)
- * stays exactly as manual as the docs already describe.
+ * This mirrors the ACTUAL live forms (linked from the operating workbook),
+ * not an idealized spec, they were hand-built and customized after the
+ * first version of this script ran, so this version was rewritten field
+ * for field against forms.gle/hyp6LJ4Rhimr5JG17 (trainer) and
+ * forms.gle/vfYyygj541wUVYYN6 (customer) to match exactly: same fields,
+ * same order, same choices, same required flags, single page, no file
+ * uploads (photos and ID are handled outside the form entirely).
+ *
+ * This is a one-off scaffolding script, not the ongoing automation ruled
+ * out by docs/DECISIONS.md item 12. Only useful if you ever need to
+ * recreate a form from scratch, e.g. after an accidental deletion, or to
+ * set up a near-identical form for a new city. It does not touch the
+ * live forms already in use.
  *
  * HOW TO RUN
  * 1. Go to script.google.com, New project.
@@ -20,18 +27,19 @@
  *    is what you'd actually send to a trainer or customer.
  * 7. Each form starts fully private, only you can see or edit it. Nothing
  *    is shared or published anywhere by this script.
+ * 8. Both forms turn on "Collect email addresses". Apps Script's basic
+ *    FormApp service can turn this on, but cannot pick between "Verified"
+ *    (requires Google sign-in, which is what the live forms currently use)
+ *    and "Responder input" (just a typed email, no sign-in). Check Settings
+ *    > Responses in the form itself after running and set it to Verified
+ *    if you want it to match the live forms exactly.
  *
  * AFTER RUNNING
- * - Responses land in each form's own "Responses" tab. To route them to a
- *   spreadsheet instead (so you can review as rows), open the form, go to
- *   Responses > the green Sheets icon > Create a new spreadsheet or select
- *   existing. This is the "Form Responses" tab docs/DEPLOY.md refers to,
- *   you still transfer accepted trainers into Trainer_Master by hand.
- * - The trainer form has two file-upload questions (photo, ID document).
- *   Google requires a respondent to be signed in to a Google account to
- *   upload a file, this script turns on "Collect email addresses" on that
- *   form for exactly that reason. The customer form has no file uploads
- *   and is left open to anonymous responses.
+ * - These are standalone forms, responses land in each form's own
+ *   "Responses" tab until you link one to a spreadsheet (Responses >
+ *   the green Sheets icon). The live forms are already linked directly
+ *   to the operating workbook, a freshly created form from this script
+ *   would need that link set up again by hand.
  * - Re-running this script creates two brand-new forms each time, it does
  *   not edit existing ones. Delete the old ones from Drive if you re-run.
  */
@@ -50,136 +58,52 @@ function createAllSpotForms() {
 }
 
 function createTrainerIntakeForm() {
-  const form = FormApp.create("Spot — Trainer Intake");
-  form.setDescription(
-    "Thanks for your interest in training with Spot. This takes about 10 minutes. " +
-    "If we're doing this on a call instead, read these off and fill the sheet directly, " +
-    "you don't need the respondent to type anything herself."
-  );
-  form.setCollectEmail(true); // required for the file-upload questions below to work
+  const form = FormApp.create("Spot Trainer Details");
+  form.setCollectEmail(true); // set to Verified in Settings > Responses to match the live form
 
-  // ---------- Identity ----------
-  form.addTextItem().setTitle("Full name").setRequired(true);
+  form.addTextItem().setTitle("Trainer First Name").setRequired(true);
+  form.addTextItem().setTitle("Trainer Last Name").setRequired(true);
+  form.addTextItem().setTitle("Trainer Phone / WhatsApp").setRequired(true);
 
-  form.addTextItem()
-    .setTitle("Preferred display name")
-    .setHelpText("This is the only name shown publicly on the browse page.")
+  form.addMultipleChoiceItem()
+    .setTitle("Trainer Gender")
+    .setChoiceValues(["Female", "Male"])
+    .showOtherOption(true)
     .setRequired(true);
 
-  form.addTextItem().setTitle("Phone number").setRequired(true);
+  form.addTextItem().setTitle("Address").setRequired(true);
+  form.addTextItem().setTitle("Area").setRequired(true);
 
   form.addTextItem()
     .setTitle("Email")
     .setValidation(FormApp.createTextValidation().requireTextIsEmail().build())
     .setRequired(false);
 
-  form.addFileUploadItem()
-    .setTitle("Profile photo")
-    .setHelpText("A clear headshot. You'll watermark this yourself before it ever goes public.")
-    .setRequired(false);
-
-  // ---------- Professional ----------
-  form.addPageBreakItem().setTitle("Professional");
-
   form.addTextItem()
-    .setTitle("Years of personal training experience")
-    .setValidation(FormApp.createTextValidation().requireWholeNumber().build())
+    .setTitle("Years of PT experience")
+    .setValidation(FormApp.createTextValidation().requireNumber().build())
     .setRequired(true);
-
-  form.addParagraphTextItem()
-    .setTitle("Certifications")
-    .setHelpText("List certification names. We'll ask for the certificate itself separately.")
-    .setRequired(true);
-
-  form.addParagraphTextItem()
-    .setTitle("Previous gyms or employers")
-    .setRequired(false);
 
   form.addCheckboxItem()
-    .setTitle("Languages spoken")
-    .setChoiceValues(["English", "Hindi", "Kannada", "Tamil", "Telugu"])
-    .showOtherOption(true)
-    .setRequired(true);
-
-  // ---------- Specialisation ----------
-  form.addPageBreakItem().setTitle("Specialisation");
-
-  form.addCheckboxItem()
-    .setTitle("Primary training goals supported")
-    .setHelpText(
-      "Avoid medical claims. Prenatal and postnatal are out of scope for now, see docs/PROJECT.md."
-    )
+    .setTitle("Training Goals Supported/ Specialization")
     .setChoiceValues([
-      "General fitness", "Weight loss", "Strength", "Muscle gain",
-      "Beginner fitness", "Women's fitness", "Mobility", "Functional fitness",
-      "PCOS-aware fitness"
+      "General fitness", "Weight loss & Mobility", "Strength/Muscle gain",
+      "PCOS-aware fitness", "Physiotherpy", "Corrective exercise specialist"
     ])
-    .setRequired(true);
-
-  // ---------- Service ----------
-  form.addPageBreakItem().setTitle("Service");
-
-  form.addCheckboxItem()
-    .setTitle("Training format")
-    .setChoiceValues(["Society gym", "Client gym", "Home", "Outdoor", "Online"])
-    .setRequired(true);
-
-  form.addCheckboxItem()
-    .setTitle("Locality served")
-    .setHelpText(
-      "Broad areas, e.g. Koramangala or HSR Layout, not a restrictive list of named " +
-      "societies, you are not limited to only these."
-    )
-    .setChoiceValues(["Koramangala", "HSR Layout"])
     .showOtherOption(true)
-    .setRequired(true);
-
-  form.addParagraphTextItem()
-    .setTitle("Any other localities or specific detail")
-    .setHelpText("Optional, use this if a single word doesn't capture where you train.")
     .setRequired(false);
 
-  form.addTextItem()
-    .setTitle("Maximum travel distance (km)")
-    .setValidation(FormApp.createTextValidation().requireNumber().build())
-    .setRequired(false);
-
-  form.addListItem()
-    .setTitle("Session length")
-    .setChoiceValues(["45 minutes", "60 minutes", "75 minutes", "90 minutes"])
-    .setRequired(true);
-
-  // ---------- Commercial ----------
-  form.addPageBreakItem().setTitle("Commercial");
+  form.addTextItem().setTitle("Previous gyms / employers").setRequired(false);
+  form.addTextItem().setTitle("Session length").setRequired(false);
 
   form.addTextItem()
-    .setTitle("Price per session (INR)")
+    .setTitle("Price per session")
     .setValidation(FormApp.createTextValidation().requireNumber().build())
     .setRequired(true);
 
   form.addTextItem()
-    .setTitle("Typical monthly package price (INR)")
+    .setTitle("Typical monthly package price")
     .setValidation(FormApp.createTextValidation().requireNumber().build())
-    .setRequired(true);
-
-  form.addMultipleChoiceItem()
-    .setTitle("Trial session offered?")
-    .setChoiceValues(["Yes", "No"])
-    .setRequired(true);
-
-  // ---------- Availability ----------
-  form.addPageBreakItem().setTitle("Availability");
-
-  form.addCheckboxItem()
-    .setTitle("Days available")
-    .setChoiceValues([
-      "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
-    ])
-    .setRequired(true);
-
-  form.addParagraphTextItem()
-    .setTitle("Time windows")
-    .setHelpText('e.g. "6:00 to 10:00 AM weekdays, 7:00 to 9:00 AM weekends"')
     .setRequired(true);
 
   form.addMultipleChoiceItem()
@@ -190,83 +114,90 @@ function createTrainerIntakeForm() {
   form.addTextItem()
     .setTitle("Number of currently open slots")
     .setValidation(FormApp.createTextValidation().requireWholeNumber().build())
-    .setRequired(false);
-
-  // ---------- Credibility, do not block listing ----------
-  form.addPageBreakItem().setTitle("Credibility (optional, won't block your listing)");
-
-  form.addParagraphTextItem()
-    .setTitle("Prior client testimonials")
-    .setHelpText("One to three, if you have them. We'll confirm permission to display separately.")
-    .setRequired(false);
-
-  form.addMultipleChoiceItem()
-    .setTitle("References available?")
-    .setChoiceValues(["Yes", "No"])
-    .setRequired(false);
-
-  // ---------- Compliance ----------
-  form.addPageBreakItem().setTitle("Compliance");
-
-  form.addFileUploadItem()
-    .setTitle("Identity document")
-    .setHelpText("Government ID or other accepted proof. Stored privately, never published.")
-    .setRequired(false);
-
-  // ---------- Consent ----------
-  form.addPageBreakItem().setTitle("Consent");
-
-  form.addCheckboxItem()
-    .setTitle("Consent to list profile")
-    .setChoiceValues(["I agree to be listed on Spot's platform"])
     .setRequired(true);
 
   form.addCheckboxItem()
-    .setTitle("Consent to display photo")
-    .setChoiceValues(["I agree to have my photo displayed publicly"])
-    .setRequired(false);
+    .setTitle("Days available")
+    .setChoiceValues([
+      "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+    ])
+    .setRequired(true);
 
   form.addCheckboxItem()
+    .setTitle("Available time window")
+    .setChoiceValues(["Morning", "Evening"])
+    .setRequired(false);
+
+  form.addMultipleChoiceItem()
+    .setTitle("Possible slots marked in sheet")
+    .setChoiceValues(["Yes"])
+    .setRequired(true);
+
+  form.addMultipleChoiceItem()
+    .setTitle("Trial session offered?")
+    .setChoiceValues(["Yes", "No"])
+    .setRequired(true);
+
+  form.addTextItem().setTitle("Languages spoken").setRequired(false);
+  form.addTextItem().setTitle("Certifications").setRequired(true);
+
+  form.addMultipleChoiceItem()
+    .setTitle("Prior client testimonials? Name and number marked in sheet")
+    .setChoiceValues(["Yes"])
+    .setRequired(true);
+
+  form.addMultipleChoiceItem()
+    .setTitle("Identity document type")
+    .setChoiceValues(["Aadhar", "Pan", "Driving License"])
+    .showOtherOption(true)
+    .setRequired(true);
+
+  form.addParagraphTextItem()
+    .setTitle("Anything important for your customers? Any deal breakers?")
+    .setRequired(false);
+
+  form.addMultipleChoiceItem()
+    .setTitle("Consent to list profile")
+    .setChoiceValues(["Yes", "No"])
+    .setRequired(true);
+
+  form.addMultipleChoiceItem()
+    .setTitle("Consent to display photo")
+    .setChoiceValues(["Yes", "No"])
+    .setRequired(true);
+
+  form.addMultipleChoiceItem()
     .setTitle("Consent to share contact after paid introduction")
-    .setChoiceValues(["I agree to have my contact shared with a customer after she completes payment"])
+    .setChoiceValues(["Yes", "No"])
     .setRequired(true);
 
   return form;
 }
 
 function createCustomerRequestForm() {
-  const form = FormApp.create("Spot — Request a Trainer Intro");
-  form.setDescription(
-    "Tell us what you're looking for and we'll connect you with the right trainer. " +
-    "We never share your details with anyone except the trainer you're introduced to."
-  );
+  const form = FormApp.create("Spot Customer Details");
+  form.setCollectEmail(true); // set to Verified in Settings > Responses to match the live form
 
-  // ---------- Contact ----------
-  form.addTextItem().setTitle("Name").setRequired(true);
-  form.addTextItem().setTitle("Phone or WhatsApp").setRequired(true);
+  form.addTextItem().setTitle("Customer Phone").setRequired(true);
+  form.addTextItem().setTitle("Customer First Name").setRequired(true);
+  form.addTextItem().setTitle("Customer Last Name").setRequired(true);
 
-  // ---------- Location ----------
-  form.addTextItem()
-    .setTitle("Area or society")
-    .setHelpText("Prefer your exact society if you know it.")
-    .setRequired(true);
+  form.addMultipleChoiceItem()
+    .setTitle("Customer Gender")
+    .setChoiceValues(["Male", "Female"])
+    .showOtherOption(true)
+    .setRequired(false);
 
-  // ---------- Goal ----------
-  form.addCheckboxItem()
-    .setTitle("What are you looking to achieve?")
-    .setChoiceValues([
-      "General fitness", "Weight loss", "Strength", "Muscle gain",
-      "Beginner fitness", "Women's fitness", "PCOS-aware fitness"
-    ])
-    .setRequired(true);
+  form.addTextItem().setTitle("Address/Society").setRequired(true);
+  form.addTextItem().setTitle("Area").setRequired(true);
+  form.addTextItem().setTitle("Goals").setRequired(true);
 
-  // ---------- Preference ----------
-  form.addListItem()
+  form.addMultipleChoiceItem()
     .setTitle("Trainer gender preference")
-    .setChoiceValues(["Female", "Male", "No preference"])
+    .setChoiceValues(["Male", "Female"])
+    .showOtherOption(true)
     .setRequired(true);
 
-  // ---------- Schedule ----------
   form.addCheckboxItem()
     .setTitle("Preferred days")
     .setChoiceValues([
@@ -274,45 +205,24 @@ function createCustomerRequestForm() {
     ])
     .setRequired(true);
 
-  form.addTextItem()
+  form.addCheckboxItem()
     .setTitle("Preferred time window")
-    .setHelpText('e.g. "6 to 8 AM"')
-    .setRequired(true);
-
-  // ---------- Budget ----------
-  form.addListItem()
-    .setTitle("Monthly budget")
-    .setChoiceValues(["Under ₹8,000", "₹8,000 to ₹12,000", "₹12,000 to ₹18,000", "₹18,000+"])
-    .setRequired(true);
-
-  // ---------- Format ----------
-  form.addListItem()
-    .setTitle("Where do you want to train?")
-    .setChoiceValues(["Society gym", "Client gym", "Home", "Outdoor", "Online"])
-    .setRequired(true);
-
-  // ---------- Session ----------
-  form.addListItem()
-    .setTitle("Preferred session length")
-    .setChoiceValues(["45 minutes", "60 minutes", "75 minutes", "90 minutes"])
+    .setChoiceValues(["Morning", "Evening"])
     .setRequired(false);
 
+  form.addTextItem().setTitle("Monthly budget").setRequired(false);
+
   form.addParagraphTextItem()
-    .setTitle("Anything important for your trainer?")
+    .setTitle("Anything important for your trainer? Any deal breakers?")
     .setHelpText(
       "Include any medical conditions, pregnancy, or injuries here, this is passed " +
-      "directly to the trainer before your first session."
+      "directly to the trainer before the first session."
     )
     .setRequired(false);
 
-  form.addParagraphTextItem()
-    .setTitle("Any deal breakers?")
-    .setRequired(false);
-
-  // ---------- Consent ----------
-  form.addCheckboxItem()
+  form.addMultipleChoiceItem()
     .setTitle("Consent to be contacted for trainer introductions")
-    .setChoiceValues(["I agree to be contacted by Spot about trainer introductions"])
+    .setChoiceValues(["Yes", "No"])
     .setRequired(true);
 
   return form;

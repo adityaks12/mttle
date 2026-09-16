@@ -1,50 +1,37 @@
-# Trainer intake form (build in Google Forms)
+# Trainer intake form ("Spot Trainer Details")
 
-Field bank lives in the operating workbook (kept offline, not in this repo), tab `Form_Trainer_Intake`. This file mirrors it. Onboarding is call-based, so you can also read these off during the call and fill `Trainer_Master` directly. Group and order as below. "Customer facing" marks fields that end up visible on the browse page; everything else stays internal.
+This describes the actual live Google Form, linked directly to the operating workbook (kept offline, not in this repo). Any submission lands straight in the sheet, no manual transfer needed for what the form itself captures. Onboarding is still call-based: fill it live on the call, or send the link to the trainer beforehand, either works. `forms/create-forms.gs` generates this exact structure from scratch if you ever need to recreate it.
 
-To build this as an actual Google Form without clicking through every field by hand, run `forms/create-forms.gs` in the Apps Script editor (script.google.com). One-off scaffolding, not automation, see the file's own header comment for exact steps.
+Single page, no sections. Collects a verified email (respondent must sign in) via the form's own Settings, not a listed question below.
 
-## Identity
-- Full name (short text). Internal only, feeds Full Name (Internal).
-- Preferred display name (short text). Customer facing, this is what the page shows.
-- Phone number (phone). Internal only.
-- Email (email, optional). Internal only.
-- Profile photo (file upload, clear headshot preferred). Customer facing only if you decide to show photos; treat as internal until then.
+1. Trainer First Name (short text, required)
+2. Trainer Last Name (short text, required)
+3. Trainer Phone / WhatsApp (short text, required)
+4. Trainer Gender (multiple choice: Female, Male, Other, required)
+5. Address (short text, required)
+6. Area (short text, required)
+7. Email (short text, email format, optional)
+8. Years of PT experience (short text, number, required)
+9. Training Goals Supported/ Specialization (checkboxes: General fitness, Weight loss & Mobility, Strength/Muscle gain, PCOS-aware fitness, Physiotherpy, Corrective exercise specialist, Other, optional)
+10. Previous gyms / employers (short text, optional)
+11. Session length (short text, optional)
+12. Price per session (short text, number, required)
+13. Typical monthly package price (short text, number, required)
+14. Currently accepting new clients? (multiple choice: Yes, No, required)
+15. Number of currently open slots (short text, number, required)
+16. Days available (checkboxes, Monday to Sunday, required)
+17. Available time window (checkboxes: Morning, Evening, optional)
+18. Possible slots marked in sheet (multiple choice, single option "Yes", required) — a self-confirmation that the availability above is actually reflected in the sheet, not a question to the trainer
+19. Trial session offered? (multiple choice: Yes, No, required)
+20. Languages spoken (short text, optional)
+21. Certifications (short text, required)
+22. Prior client testimonials? Name and number marked in sheet (multiple choice, single option "Yes", required) — same self-confirmation pattern as item 18
+23. Identity document type (multiple choice: Aadhar, Pan, Driving License, Other, required) — the type only, the document itself is not uploaded through the form, see below
+24. Anything important for your customers? Any deal breakers? (paragraph, optional)
+25. Consent to list profile (multiple choice: Yes, No, required)
+26. Consent to display photo (multiple choice: Yes, No, required)
+27. Consent to share contact after paid introduction (multiple choice: Yes, No, required)
 
-## Professional
-- Years of personal training experience (number). Customer facing.
-- Certifications (paragraph, list certification names). Customer facing. Request certificate upload separately, store in the restricted Drive folder.
-- Previous gyms or employers (paragraph, optional). Internal.
-- Languages spoken (checkboxes: English, Hindi, Kannada, Tamil, Telugu, Other). Customer facing.
-
-## Specialisation
-- Primary training goals supported (checkboxes: general fitness, weight loss, strength, muscle gain, beginner fitness, women's fitness, mobility, functional fitness, PCOS-aware fitness). Customer facing. Avoid medical claims. No prenatal or postnatal (deferred, see `docs/PROJECT.md`).
-
-## Service
-- Training format (checkboxes: society gym, client gym, home, outdoor, online). Customer facing.
-- Locality served (checkboxes plus paragraph, broad areas like Koramangala or HSR Layout, not a restrictive list of named societies, she is not limited to only those). Customer facing.
-- Maximum travel distance (number, km). Internal, informs matching.
-- Session length (dropdown: 45, 60, 75, 90 minutes). Customer facing.
-
-## Commercial
-- Price per session (number, INR). Customer facing.
-- Typical monthly package price (number, INR). Customer facing.
-- Trial session offered (yes/no). Customer facing.
-
-## Availability
-- Days available (checkboxes, Mon to Sun). Customer facing, feeds `Trainer_Availability`.
-- Time windows (grid or paragraph, e.g. "6:00 to 10:00 AM"). Customer facing, feeds `Trainer_Availability`.
-- Currently accepting new clients (yes/no). Customer facing.
-- Number of currently open slots (number). Internal, feeds Current Open Slots.
-
-## Credibility, do not block listing
-- Prior client testimonials (paragraph, ask for 1 to 3). Customer facing if permission given, feeds `Trainer_Reviews`. Obtain display permission separately.
-- References available (yes/no). Internal. Call one or two.
-
-## Compliance
-- Identity document (file upload, government ID or other accepted proof). Internal, restricted access, feeds `Trainer_Documents`.
-
-## Consent
-- Consent to list profile (checkbox, required). Internal, DPDP consent record, feeds Consent to List.
-- Consent to display photo (checkbox). Internal.
-- Consent to share contact after paid introduction (checkbox, required). Internal, feeds Consent to Share Contact.
+## What the form deliberately does not collect
+- **Profile photo, ID document itself.** No file-upload questions. Photos and ID documents are collected and handled entirely outside the form (uploaded directly to the restricted Drive folder), not attached to a form response. Item 23 above records only which type of ID she has, not the file.
+- **Locality as a checklist, maximum travel distance.** Replaced by the single Area free-text field (item 6). Simpler, and matches the "locality, not a restrictive list of named societies" stance in `docs/PROJECT.md`.
