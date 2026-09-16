@@ -11,7 +11,7 @@ Pre-launch demand test, run concierge. No automation. Google Forms, Sheets and D
 - Static site, single file: `site/index.html` (vanilla HTML, CSS and JS, no build step). `site/` is the only folder ever published; `docs/`, `forms/` and `data/` never get deployed and must stay out of any hosting publish directory.
 - Data source: up to three completely separate Google Sheets, none with a formula link to the operating workbook (which holds `Trainer_Master` and everything else, kept live as a Google Sheet, and kept entirely offline, not in this repo in any form). The public feed (required) is hand-maintained with only public-safe columns for Active trainers. The schedule and reviews feeds (both optional) add real time slots and testimonials. All published to the web as CSV. Never publish anything from the operating workbook itself, it holds phone numbers, full names and internal notes. See `docs/SPEC.md`.
 - Trainer profile page: not a separate HTML file, a client-side detail view toggled by a `#trainer=ID` URL hash within the same `site/index.html`, since trainer data is dynamic from a sheet and there is no build step to generate one page per trainer.
-- Hosting: a GitHub repo connected to Netlify, publish directory `site` (see `netlify.toml`). Push to deploy. GitHub Pages is not used here since its subfolder option is fixed to `/docs`, which this repo already uses for project docs.
+- Hosting: Netlify site `spot-trainer-intro`, publish directory `site` (see `netlify.toml`). Not linked to GitHub, deploy is a manual `netlify deploy --prod --dir=site --site=f4f5fc8e-b48a-4656-94b2-38cf355f4fa2` after every push, see `docs/DEPLOY.md`. A `git push` alone does not update the live site, always deploy and then verify with a cache-busted fetch. GitHub Pages is not used here since its subfolder option is fixed to `/docs`, which this repo already uses for project docs.
 - Fonts load from Google Fonts. No other dependencies.
 
 ## Hard rules, do not break
@@ -43,7 +43,7 @@ Pre-launch demand test, run concierge. No automation. Google Forms, Sheets and D
 
 ## Run and deploy
 - Preview: open `site/index.html` in a browser. With no sheet URL set, it shows an empty "no trainers listed yet" state, never placeholder data.
-- Go live: create the separate public feed sheet (see `docs/SPEC.md`), publish it as CSV, paste the URL into CONFIG.sheetCsvUrl, set CONFIG.whatsappNumber, commit and push. Netlify redeploys from the `site` publish directory only. The schedule and reviews feeds (CONFIG.scheduleCsvUrl, CONFIG.reviewsCsvUrl) are optional, add them any time.
+- Go live: create the separate public feed sheet (see `docs/SPEC.md`), publish it as CSV, paste the URL into CONFIG.sheetCsvUrl, set CONFIG.whatsappNumber, commit and push, then run the manual Netlify deploy (see Stack above and `docs/DEPLOY.md`), pushing alone does not go live. The schedule and reviews feeds (CONFIG.scheduleCsvUrl, CONFIG.reviewsCsvUrl) are optional, add them any time.
 - Ongoing: the public feed sheet has no formula link to `Trainer_Master`, so every trainer change (going Active, Paused, a price or slot update) needs a matching hand edit in both files. See `docs/SPEC.md`'s "Keeping it in sync" note.
 
 ## How to work here
