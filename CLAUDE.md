@@ -38,7 +38,7 @@ Pre-launch demand test, run concierge. No automation. Google Forms, Sheets and D
 - `site/index.html`, the browse page, and the only file ever published. The config block sits at the top of the script (brand, sheet URL, WhatsApp number, column map, publish statuses).
 - The operating workbook itself (trainer, society, customer, request, introduction, payment and followup tracking, plus form question banks and controlled lists) is not in this repo at all, it stays offline on the founder's own computer and in Google Sheets. `docs/SPEC.md` describes every tab from memory, and the separate public feed sheet that the browse page actually reads.
 - `docs/`, PROJECT, DECISIONS, SPEC, DEPLOY. Private, never published.
-- `forms/`, specs to recreate the two Google Forms by hand (mirrors the workbook's Form_Trainer_Intake and Form_Customer_Request tabs).
+- `forms/`, specs for the two Google Forms (mirrors the workbook's Form_Trainer_Intake and Form_Customer_Request tabs), plus `create-forms.gs`, an Apps Script that generates both forms from those specs in one run instead of building them by hand. One-off scaffolding, not the ongoing automation item 12 in `docs/DECISIONS.md` rules out.
 - `data/sample-trainers.csv`, a reference of the expected public feed sheet shape (fictional data, matches CONFIG.columns).
 
 ## Run and deploy

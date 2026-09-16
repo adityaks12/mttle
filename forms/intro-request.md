@@ -2,6 +2,8 @@
 
 Field bank lives in the operating workbook (kept offline, not in this repo), tab `Form_Customer_Request`. This file mirrors it. The browse page's "Request an intro" button messages your WhatsApp by default, which is the simplest month-one path. If you prefer a form, build this and point responses at `Customer_Master` and `Customer_Requests`.
 
+To build this as an actual Google Form without clicking through every field by hand, run `forms/create-forms.gs` in the Apps Script editor (script.google.com). One-off scaffolding, not automation, see the file's own header comment for exact steps.
+
 Fields:
 - Name (short text). Feeds Customer_Master.
 - Phone or WhatsApp (phone). Feeds Customer_Master.

@@ -19,7 +19,7 @@ Custom domain: point spot.in at the host when you are ready (Netlify domain sett
 2. Publish that new file's tab to the web: File, Share, Publish to web, CSV, Publish. Copy the URL. Never publish anything from the operating workbook itself, that is where `Trainer_Master` and every other private tab lives.
 3. In `site/index.html`, set CONFIG.sheetCsvUrl to that URL and CONFIG.whatsappNumber to your business number.
 4. Optional: create a third Google Sheet for reviews (`Trainer ID, Reviewer First Name, Rating, Testimonial, Date`), publish it, and set CONFIG.reviewsCsvUrl. See `docs/SPEC.md`.
-5. Recreate the two forms from `forms/` in Google Forms (mirrors Form_Trainer_Intake and Form_Customer_Request in the workbook). Point responses at their own Form Responses tab, then transfer to `Trainer_Master` by hand after screening, see `docs/SPEC.md`.
+5. Build the two forms from `forms/` in Google Forms, either by hand or by running `forms/create-forms.gs` once in the Apps Script editor (script.google.com), which generates both from the same specs. Point responses at their own Form Responses tab, then transfer to `Trainer_Master` by hand after screening, see `docs/SPEC.md`.
 6. Create an access-restricted Google Drive folder for IDs and certificates, linked from Trainer_Documents. Do not store these in the open sheet.
 7. Commit and push. Confirm the live URL shows your trainers rather than the empty state, and that visiting `/docs/` on the live URL 404s.
 8. From here on, every time a trainer goes Active, Paused or changes a public-facing detail, update her row in the public feed sheet by hand, in addition to `Trainer_Master`. The two files are not linked, see `docs/SPEC.md`'s "Keeping it in sync" note.

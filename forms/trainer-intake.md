@@ -2,6 +2,8 @@
 
 Field bank lives in the operating workbook (kept offline, not in this repo), tab `Form_Trainer_Intake`. This file mirrors it. Onboarding is call-based, so you can also read these off during the call and fill `Trainer_Master` directly. Group and order as below. "Customer facing" marks fields that end up visible on the browse page; everything else stays internal.
 
+To build this as an actual Google Form without clicking through every field by hand, run `forms/create-forms.gs` in the Apps Script editor (script.google.com). One-off scaffolding, not automation, see the file's own header comment for exact steps.
+
 ## Identity
 - Full name (short text). Internal only, feeds Full Name (Internal).
 - Preferred display name (short text). Customer facing, this is what the page shows.
