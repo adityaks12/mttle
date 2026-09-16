@@ -9,3 +9,6 @@ reference/
 
 # Local Netlify CLI state, not project config
 .netlify/
+
+# Personal running to-do list, not project docs
+docs/BACKLOG.md
