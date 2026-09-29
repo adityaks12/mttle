@@ -10,6 +10,7 @@ reference/
 # Local Netlify CLI state, not project config
 .netlify/
 
-# The whole docs/ folder: platform and deployment playbooks, running to-do
-# list, all business/product/technical context. Local only, never in git.
+# Safety net only: local playbooks and to-do list live in a sibling
+# ../playbook/ folder outside this repo entirely, not here. This just
+# guards against anyone ever creating a docs/ folder inside the repo by mistake.
 docs/
