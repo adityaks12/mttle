@@ -10,7 +10,7 @@
  * uploads (photos and ID are handled outside the form entirely).
  *
  * This is a one-off scaffolding script, not the ongoing automation ruled
- * out by docs/DECISIONS.md item 12. Only useful if you ever need to
+ * out by the local platform playbook's settled decision 12. Only useful if you ever need to
  * recreate a form from scratch, e.g. after an accidental deletion, or to
  * set up a near-identical form for a new city. It does not touch the
  * live forms already in use.

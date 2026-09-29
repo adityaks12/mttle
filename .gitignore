@@ -10,8 +10,6 @@ reference/
 # Local Netlify CLI state, not project config
 .netlify/
 
-# Personal running to-do list, not project docs
-docs/BACKLOG.md
-
-# Monetization, pricing and competitive strategy, kept off GitHub entirely
-docs/STRATEGY.md
+# The whole docs/ folder: platform and deployment playbooks, running to-do
+# list, all business/product/technical context. Local only, never in git.
+docs/

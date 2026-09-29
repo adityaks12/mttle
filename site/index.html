@@ -17,10 +17,10 @@
      Locality is a broad area (e.g. "Koramangala" or "HSR Layout, Koramangala"),
      not a list of specific societies, a trainer is not restricted to named societies.
      Photo columns are optional: direct image links to already-watermarked photos
-     (see docs/SPEC.md for the Google Drive direct-link format). No photo, no problem,
-     an initial-letter avatar is used instead.
-     No formula, no link to Trainer_Master, see docs/SPEC.md. Type a row by hand for
-     each trainer who should show publicly.
+     (see the local deployment playbook for the Google Drive direct-link format).
+     No photo, no problem, an initial-letter avatar is used instead.
+     No formula, no link to Trainer_Master. Type a row by hand for each trainer
+     who should show publicly.
      File > Share > Publish to web > Comma-separated values (.csv) > Publish.
      Copy the URL it gives you. Never publish anything from the operating workbook
      itself, that is where Trainer_Master lives, with phone numbers and full names.
@@ -28,8 +28,9 @@
      empty, no-trainers-yet state, never placeholder data).
   3. Put YOUR business WhatsApp number in CONFIG.whatsappNumber (this is who the
      "Request an intro" button messages. The trainer's number NEVER appears on this page).
-  4. Change CONFIG.brandName / headline / tagline if needed, then push. Netlify deploys
-     this file from the "site" publish directory (see netlify.toml). Done.
+  4. Change CONFIG.brandName / headline / tagline if needed, then push AND run a manual
+     Netlify deploy (this site is not linked to GitHub, a push alone does not go live,
+     see the local deployment playbook). Done.
 
   A trainer shows on the page only when her Status is Active in the PUBLIC FEED sheet.
   The two sheets are not linked, so update her row in both places, every time.

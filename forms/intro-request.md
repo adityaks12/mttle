@@ -18,6 +18,6 @@ Single page, no sections. Collects a verified email (respondent must sign in) vi
 12. Anything important for your trainer? Any deal breakers? (paragraph, optional) — this is the client safety question when it covers medical conditions, pregnancy, or injuries, pass it to the trainer
 13. Consent to be contacted for trainer introductions (multiple choice: Yes, No, required)
 
-After capture: reply with a UPI QR or a Razorpay or Instamojo payment link. On payment, share the trainer's contact along with the safety note, and log the row in `Introductions` and `Payments`. Log the inquiry's outcome so `Acquisition_Experiments` and the price test (see `docs/DECISIONS.md`) stay current.
+After capture: reply with a UPI QR or a Razorpay or Instamojo payment link. On payment, share the trainer's contact along with the safety note, and log the row in `Introductions` and `Payments`. Log the inquiry's outcome so `Acquisition_Experiments` and the price test (see the local platform playbook) stay current.
 
 Note: the browse page never reveals the trainer's number. You share it manually after payment.

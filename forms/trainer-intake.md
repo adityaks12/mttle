@@ -34,4 +34,4 @@ Single page, no sections. Collects a verified email (respondent must sign in) vi
 
 ## What the form deliberately does not collect
 - **Profile photo, ID document itself.** No file-upload questions. Photos and ID documents are collected and handled entirely outside the form (uploaded directly to the restricted Drive folder), not attached to a form response. Item 23 above records only which type of ID she has, not the file.
-- **Locality as a checklist, maximum travel distance.** Replaced by the single Area free-text field (item 6). Simpler, and matches the "locality, not a restrictive list of named societies" stance in `docs/PROJECT.md`.
+- **Locality as a checklist, maximum travel distance.** Replaced by the single Area free-text field (item 6). Simpler, and matches the "locality, not a restrictive list of named societies" stance in the local platform playbook.
