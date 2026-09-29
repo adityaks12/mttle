@@ -2,7 +2,7 @@
 
 Spot is a hyperlocal introduction and matching service that connects people with the personal trainers who actually fit their needs. Today's wedge is women in Bangalore apartment societies (Koramangala and HSR Layout) finding vetted female fitness trainers who train them at their own society (clubhouse) gym; the same model extends to men and to well-qualified male trainers over time, see `docs/PROJECT.md`'s Expansion section, this is a sequencing choice, not the product's permanent scope. Browsing is free. The customer pays a fee to unlock a chosen trainer's direct contact and arranges sessions directly. Domain: spot.in.
 
-Before making changes, read `docs/PROJECT.md` (the idea), `docs/DECISIONS.md` (settled calls, do not relitigate), and `docs/SPEC.md` (data model and page behaviour).
+Before making changes, read `docs/PROJECT.md` (the idea), `docs/DECISIONS.md` (settled calls, do not relitigate), and `docs/SPEC.md` (data model and page behaviour). Monetization, pricing and competitive strategy live in a local-only `docs/STRATEGY.md` (gitignored, never committed), ask the founder for it if it isn't present locally.
 
 ## Current stage
 Pre-launch demand test, run concierge. No automation. Google Forms, Sheets and Drive are the manual backend. The only code artifact is the browse page (`site/index.html`). The goal of this stage is to find out whether a woman will pay before receiving a trainer's contact.
@@ -37,7 +37,7 @@ Pre-launch demand test, run concierge. No automation. Google Forms, Sheets and D
 ## Key files
 - `site/index.html`, the browse page, and the only file ever published. The config block sits at the top of the script (brand, sheet URL, WhatsApp number, column map, publish statuses).
 - The operating workbook itself (trainer, society, customer, request, introduction, payment and followup tracking, plus form question banks and controlled lists) is not in this repo at all, it stays offline on the founder's own computer and in Google Sheets. `docs/SPEC.md` describes every tab from memory, and the separate public feed sheet that the browse page actually reads.
-- `docs/`, PROJECT, DECISIONS, SPEC, DEPLOY. Private, never published.
+- `docs/`, PROJECT, DECISIONS, SPEC, DEPLOY, BACKLOG. Private, never published. `docs/STRATEGY.md` (monetization, pricing, competitive reasoning) and `docs/BACKLOG.md` (running to-do list) are gitignored and never committed at all, unlike the rest of `docs/`.
 - `forms/`, specs for the two Google Forms (mirrors the workbook's Form_Trainer_Intake and Form_Customer_Request tabs), plus `create-forms.gs`, an Apps Script that generates both forms from those specs in one run instead of building them by hand. One-off scaffolding, not the ongoing automation item 12 in `docs/DECISIONS.md` rules out.
 - `data/sample-trainers.csv`, a reference of the expected public feed sheet shape (fictional data, matches CONFIG.columns).
 
