@@ -1,4 +1,4 @@
-# Trainer intake form ("Spot Trainer Details")
+# Trainer intake form ("mttle Trainer Details")
 
 This describes the actual live Google Form, linked directly to the operating workbook (kept offline, not in this repo). Any submission lands straight in the sheet, no manual transfer needed for what the form itself captures. Onboarding is still call-based: fill it live on the call, or send the link to the trainer beforehand, either works. `forms/create-forms.gs` generates this exact structure from scratch if you ever need to recreate it.
 

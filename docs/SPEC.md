@@ -8,7 +8,7 @@ The operating workbook is kept entirely offline: on the founder's own computer, 
 `Trainer_Master` itself is never published to the web and never shared beyond you. It holds phone numbers, full legal names, consent flags and internal notes. "Publish to web" has no per-column redaction, so publishing `Trainer_Master` directly would ship every private field to anyone who finds the CSV URL, and that URL sits in plain text in `site/index.html`'s source on the live site. It is also a poor idea to publish any tab from the same file `Trainer_Master` lives in at all, one wrong sharing setting on that file would then risk the whole business workbook, not just one tab. Instead, the browse page reads from a second, entirely separate Google Sheets file, with no formula link and no shared ownership between the two.
 
 ## The public feed, a completely separate file
-A brand-new Google Sheet, for example named "Spot — Public Trainer Feed," containing nothing but one tab with these headers in row 1:
+A brand-new Google Sheet, for example named "mttle — Public Trainer Feed," containing nothing but one tab with these headers in row 1:
 
 `Trainer ID, Display Name, Status, Locality, Training Format, Current Open Slots, Specialisations, Price / Session, Typical Monthly Price, Certifications, Years Experience, Photo 1 URL, Photo 2 URL`
 
@@ -31,7 +31,7 @@ Keeping it in sync is a manual step, deliberately, since there is no formula doi
 
 ### Photos
 Google Sheets cells hold a URL, not an image file, and a photo needs a direct-image link to actually render, not a normal Drive share link (which opens Drive's preview page instead of the raw image). To get one:
-1. Watermark the photo yourself before uploading anywhere (your stated reason: so it cannot be reverse-searched to find her by name). This is done outside Spot entirely, in whatever image editor you use.
+1. Watermark the photo yourself before uploading anywhere (your stated reason: so it cannot be reverse-searched to find her by name). This is done outside mttle entirely, in whatever image editor you use.
 2. Upload the watermarked photo to Google Drive, right-click it, Share, set to "Anyone with the link."
 3. Copy its share link and pull out the file ID, the long string between `/d/` and `/view`.
 4. Build the direct-image URL: `https://lh3.googleusercontent.com/d/FILE_ID`. Paste that into `Photo 1 URL` (or `Photo 2 URL`).
@@ -43,7 +43,7 @@ The page's own `showStatuses` check (below) still filters to Active as a second,
 Multi-value cells (Locality, Specialisations) hold comma-separated values inside one cell. Google exports these as quoted CSV fields. The page has a CSV parser that handles quoted commas, so do not switch to a naive split on comma.
 
 ## The schedule feed, optional, a third separate file
-A raw open-slots count does not tell a customer whether a trainer is free when she actually wants a session. A third Google Sheet, for example "Spot — Trainer Schedule," fixes that: one tab, headers in row 1:
+A raw open-slots count does not tell a customer whether a trainer is free when she actually wants a session. A third Google Sheet, for example "mttle — Trainer Schedule," fixes that: one tab, headers in row 1:
 
 `Trainer ID, Day, Start Time, End Time, Currently Open`
 
@@ -54,7 +54,7 @@ Publish this tab the same way, CSV, and put its URL in `site/index.html`'s CONFI
 Keeping it in sync is the same manual discipline as the public feed: update this file's rows whenever a trainer's actual availability changes, there is no formula linking it to anything either.
 
 ## The reviews feed, optional, a fourth separate file
-A fourth Google Sheet, for example "Spot — Trainer Reviews," one tab, headers in row 1:
+A fourth Google Sheet, for example "mttle — Trainer Reviews," one tab, headers in row 1:
 
 `Trainer ID, Reviewer First Name, Rating, Testimonial, Date`
 

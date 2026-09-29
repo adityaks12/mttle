@@ -1,4 +1,4 @@
-# Customer request form ("Spot Customer Details")
+# Customer request form ("mttle Customer Details")
 
 This describes the actual live Google Form, linked directly to the operating workbook (kept offline, not in this repo). The browse page's "Request an intro" button messaging WhatsApp is still the primary month-one path, this form is the alternative for anyone who'd rather fill a form. `forms/create-forms.gs` generates this exact structure from scratch if you ever need to recreate it.
 

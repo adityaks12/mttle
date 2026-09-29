@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Spot — find a trainer at your society gym</title>
+<title>mttle — find a trainer at your society gym</title>
 
 <!--
   ============================================================
   GO LIVE IN 4 STEPS
   ============================================================
   1. Create a brand-new, SEPARATE Google Sheet (not your operating workbook), e.g.
-     "Spot — Public Trainer Feed." One tab, headers in row 1: Trainer ID, Display Name,
+     "mttle — Public Trainer Feed." One tab, headers in row 1: Trainer ID, Display Name,
      Status, Locality, Training Format, Current Open Slots, Specialisations,
      Price / Session, Typical Monthly Price, Certifications, Years Experience,
      Photo 1 URL, Photo 2 URL.
@@ -78,7 +78,6 @@
 
   header{padding:36px 0 6px}
   .brand{font-family:var(--display); font-weight:700; font-size:25px; letter-spacing:-.01em; color:var(--ink)}
-  .brand .dot{color:var(--signal); font-weight:800}
   .hero{padding:24px 0 6px; max-width:660px}
   .hero h1{font-family:var(--display); font-weight:700; font-size:46px; line-height:1.04;
     letter-spacing:-.025em; margin:0 0 16px; color:var(--ink)}
@@ -204,7 +203,7 @@
 
 <div class="wrap">
   <header>
-    <div class="brand" id="brand">Spot<span class="dot">.</span></div>
+    <div class="brand" id="brand">mttle</div>
     <div class="hero">
       <h1 id="headline">A trainer who understands women's fitness, at your own society gym.</h1>
       <p id="tagline">Every trainer here is someone we have spoken to, checked references for, and onboarded in person. Browse for free. You will get her direct contact once you request an intro.</p>
@@ -233,7 +232,7 @@
   <div id="profileView" hidden></div>
 
   <footer>
-    <span id="footBrand">Spot</span> is an introduction service that connects clients with independent trainers.
+    <span id="footBrand">mttle</span> is an introduction service that connects clients with independent trainers.
     We are not a medical provider and do not supervise sessions. Please consult a doctor before starting a new exercise programme.
   </footer>
 </div>
@@ -241,7 +240,7 @@
 <script>
 /* ============================ CONFIG ============================ */
 const CONFIG = {
-  brandName: "Spot",                  // your chosen name
+  brandName: "mttle",                 // your chosen name
   headline: "A trainer who understands women's fitness, at your own society gym.",
   tagline: "Every trainer here is someone we have spoken to, checked references for, and onboarded in person. Browse for free. You will get her direct contact once you request an intro.",
 
@@ -317,7 +316,7 @@ let filterSpec = "__all";
 let filterFavoritesOnly = false;
 
 /* ---- Favorites, saved locally in this browser only, no login needed ---- */
-const FAV_KEY = "spot_favorites";
+const FAV_KEY = "mttle_favorites";
 function loadFavorites(){
   try{ return new Set(JSON.parse(localStorage.getItem(FAV_KEY) || "[]")); }
   catch(e){ return new Set(); }
@@ -653,7 +652,7 @@ function showNote(msg){
 }
 
 function applyBranding(){
-  document.getElementById("brand").innerHTML = esc(CONFIG.brandName)+'<span class="dot">.</span>';
+  document.getElementById("brand").textContent = CONFIG.brandName;
   document.getElementById("headline").textContent = CONFIG.headline;
   document.getElementById("tagline").textContent = CONFIG.tagline;
   document.getElementById("footBrand").textContent = CONFIG.brandName;

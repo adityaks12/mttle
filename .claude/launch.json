@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "spot-site",
+      "name": "mttle-site",
       "runtimeExecutable": "npx",
       "runtimeArgs": ["-y", "serve", "site", "-l", "5173"],
       "port": 5173

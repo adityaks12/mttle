@@ -1,5 +1,5 @@
 /**
- * Creates the two Spot Google Forms (Trainer Intake, Customer Request).
+ * Creates the two mttle Google Forms (Trainer Intake, Customer Request).
  *
  * This mirrors the ACTUAL live forms (linked from the operating workbook),
  * not an idealized spec, they were hand-built and customized after the
@@ -18,8 +18,8 @@
  * HOW TO RUN
  * 1. Go to script.google.com, New project.
  * 2. Delete the placeholder code, paste this whole file in.
- * 3. Save (Ctrl/Cmd+S), name the project something like "Spot Form Builder".
- * 4. In the function dropdown at the top, select "createAllSpotForms", click Run.
+ * 3. Save (Ctrl/Cmd+S), name the project something like "mttle Form Builder".
+ * 4. In the function dropdown at the top, select "createAllMttleForms", click Run.
  * 5. First run asks you to authorize the script (it needs permission to
  *    create files in your Drive, since a Form is a Drive file). Approve it.
  * 6. Open View > Logs (or Execution log) to get both forms' edit and live
@@ -44,7 +44,7 @@
  *   not edit existing ones. Delete the old ones from Drive if you re-run.
  */
 
-function createAllSpotForms() {
+function createAllMttleForms() {
   const trainerForm = createTrainerIntakeForm();
   const customerForm = createCustomerRequestForm();
 
@@ -58,7 +58,7 @@ function createAllSpotForms() {
 }
 
 function createTrainerIntakeForm() {
-  const form = FormApp.create("Spot Trainer Details");
+  const form = FormApp.create("mttle Trainer Details");
   form.setCollectEmail(true); // set to Verified in Settings > Responses to match the live form
 
   form.addTextItem().setTitle("Trainer First Name").setRequired(true);
@@ -175,7 +175,7 @@ function createTrainerIntakeForm() {
 }
 
 function createCustomerRequestForm() {
-  const form = FormApp.create("Spot Customer Details");
+  const form = FormApp.create("mttle Customer Details");
   form.setCollectEmail(true); // set to Verified in Settings > Responses to match the live form
 
   form.addTextItem().setTitle("Customer Phone").setRequired(true);

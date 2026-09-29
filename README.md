@@ -1,4 +1,4 @@
-# Spot
+# mttle
 
 Hyperlocal introduction and matching service connecting people with the personal trainers who fit their needs. Today's wedge is women in Bangalore societies finding vetted female trainers who train at their society gym; see `docs/PROJECT.md` for why this is a sequencing choice, not a permanent scope. This repo holds the browse page and the project context.
 
