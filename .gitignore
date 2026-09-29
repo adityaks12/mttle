@@ -10,7 +10,9 @@ reference/
 # Local Netlify CLI state, not project config
 .netlify/
 
-# Safety net only: local playbooks and to-do list live in a sibling
-# ../playbook/ folder outside this repo entirely, not here. This just
-# guards against anyone ever creating a docs/ folder inside the repo by mistake.
+# Safety net only: local playbooks, to-do list and form specs live in a
+# sibling ../context/ folder outside this repo entirely, not here. This
+# just guards against anyone ever recreating docs/ or forms/ in the repo
+# by mistake.
 docs/
+forms/
