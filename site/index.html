@@ -108,9 +108,10 @@
   .state{padding:60px 0; text-align:center; color:var(--muted)}
   .state h2{font-family:var(--display); font-weight:600; color:var(--ink); font-size:24px; margin:0 0 8px}
 
-  .favtoggle{font-family:var(--sans); font-size:14px; color:var(--ink); background:transparent;
-    border:1px solid var(--line); border-radius:999px; padding:8px 15px; cursor:pointer}
-  .favtoggle[aria-pressed="true"]{background:var(--signal-tint); color:var(--signal-deep); border-color:var(--signal-tint)}
+  .favtoggle{font-family:var(--sans); font-size:14px; font-weight:600; color:#C0392B; background:transparent;
+    border:1px solid rgba(192,57,43,.35); border-radius:999px; padding:8px 15px; cursor:pointer}
+  .favtoggle:hover{border-color:#C0392B}
+  .favtoggle[aria-pressed="true"]{background:#C0392B; color:#fff; border-color:#C0392B}
 
   .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin:24px 0 64px}
   .card{background:var(--card); border:1px solid var(--line); border-radius:12px;
