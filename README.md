@@ -14,6 +14,6 @@ Hyperlocal introduction and matching service connecting people with the personal
 - No `docs/` or `forms/` folder in this repo. The platform playbook, deployment playbook, running to-do list, and Google Form specs all live in a sibling `context/` folder next to this repo, never committed anywhere.
 - `data/`, a sample CSV showing the expected shape of the public feed sheet.
 
-This repo stays private. The operating workbook, where `Trainer_Master` lives (phone numbers, full names, internal notes), is never published either. The browse page reads from a completely separate, hand-maintained Google Sheet with no formula link to the workbook, holding only public-safe fields.
+This repo is public (needed for GitHub Pages on the free plan, since 2026-09-30). The operating workbook, where `Trainer_Master` lives (phone numbers, full names, internal notes), is never in this repo and never published either. The browse page reads from a completely separate, hand-maintained Google Sheet with no formula link to the workbook, holding only public-safe fields. Everything actually tracked here was reviewed before going public, nothing sensitive is in it.
 
 Style: no em dashes, sentence case, plain active voice.
